@@ -1,36 +1,41 @@
 # Koyeb.com Deployment Guide
 
 ## Overview
-This guide walks you through deploying the NextSlot Booking SaaS application on Koyeb.com using Docker.
+This guide walks you through deploying the NextSlot Booking SaaS application on Koyeb.com using Docker, connected to Railway PostgreSQL.
 
 ## Prerequisites
 - GitHub account with your repository
 - Koyeb account (free tier available at https://koyeb.com)
-- External PostgreSQL database (Neon, Supabase, ElephantSQL, or similar)
+- Railway PostgreSQL database (from your Railway project)
 
 ---
 
-## Step 1: Set Up PostgreSQL Database
+## Step 1: Get Railway PostgreSQL Connection String
 
-Koyeb doesn't provide managed PostgreSQL, so you'll need an external database provider.
+Since you're using Railway's PostgreSQL, you need to get the external connection URL.
 
-### Recommended Options:
+### Get DATABASE_URL from Railway:
 
-#### Option A: Neon (Recommended - Free tier available)
-1. Go to https://neon.tech
-2. Create a new project
-3. Copy the connection string (looks like: `postgresql://user:pass@host/dbname?sslmode=require`)
+1. **Login to Railway**
+   - Go to https://railway.app/dashboard
+   - Select your project
 
-#### Option B: Supabase (Free tier available)
-1. Go to https://supabase.com
-2. Create a new project
-3. Go to Settings → Database → Connection string → URI
-4. Copy the connection string
+2. **Access PostgreSQL Service**
+   - Click on your PostgreSQL service
+   - Go to **Variables** tab or **Connect** tab
 
-#### Option C: ElephantSQL (Free tier available)
-1. Go to https://www.elephantsql.com
-2. Create a new instance (Tiny Turtle - free)
-3. Copy the URL from instance details
+3. **Copy the External URL**
+   - Find `DATABASE_URL` or `DATABASE_PUBLIC_URL`
+   - The external URL looks like:
+     ```
+     postgresql://postgres:PASSWORD@HOST.railway.app:PORT/railway
+     ```
+   - **Important**: Use the PUBLIC/EXTERNAL URL, not the internal one
+
+4. **Enable Public Networking (if not already)**
+   - Go to PostgreSQL service → Settings
+   - Enable "Public Networking" 
+   - This generates a public host and port for external access
 
 ---
 
@@ -63,11 +68,16 @@ Koyeb doesn't provide managed PostgreSQL, so you'll need an external database pr
    | Variable | Value |
    |----------|-------|
    | `SECRET_KEY` | Generate: `python -c "import secrets; print(secrets.token_urlsafe(50))"` |
-   | `DATABASE_URL` | Your PostgreSQL connection string |
+   | `DATABASE_URL` | Your Railway PostgreSQL external URL |
    | `DEBUG` | `False` |
    | `ALLOWED_HOSTS` | `*` |
    | `DEFAULT_DOMAIN` | `nextslot.in` |
    | `DEFAULT_SCHEME` | `https` |
+
+   **Example DATABASE_URL from Railway:**
+   ```
+   postgresql://postgres:AbCdEfGhIjKlMnOp@roundhouse.proxy.rlwy.net:12345/railway
+   ```
 
    **Optional variables (for full features):**
    | Variable | Value |
@@ -161,7 +171,7 @@ You'll need to exec into the container to create a superuser:
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `SECRET_KEY` | Django secret key | Random 50+ character string |
-| `DATABASE_URL` | PostgreSQL connection URL | `postgresql://user:pass@host:5432/db` |
+| `DATABASE_URL` | Railway PostgreSQL external URL | `postgresql://postgres:pass@host.railway.app:port/railway` |
 | `DEBUG` | Debug mode | `False` |
 | `ALLOWED_HOSTS` | Allowed hosts | `*` |
 | `DEFAULT_DOMAIN` | Your main domain | `nextslot.in` |
@@ -208,8 +218,10 @@ You'll need to exec into the container to create a superuser:
 - Verify STATIC_ROOT and STATIC_URL settings
 
 ### Database Connection Issues
-- Ensure SSL is enabled in DATABASE_URL (`?sslmode=require`)
-- Check database provider's firewall/allowed IPs
+- Ensure Railway PostgreSQL has "Public Networking" enabled
+- Copy the PUBLIC/EXTERNAL URL from Railway (not the internal one)
+- The URL should have a domain like `*.railway.app` or `*.proxy.rlwy.net`
+- Check Railway PostgreSQL service is running
 - Verify connection string format
 
 ---
