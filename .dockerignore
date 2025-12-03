@@ -1,0 +1,49 @@
+# Ignore Python bytecode
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignore virtual environment
+venv/
+env/
+.venv/
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore local database
+*.sqlite3
+db.sqlite3
+
+# Ignore environment files
+.env
+.env.local
+.env.production
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore media uploads (use cloud storage in production)
+media/
+
+# Ignore static collected files (built during deployment)
+staticfiles/
+
+# Ignore local development files
+*.bak
+*.tmp
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore coverage reports
+htmlcov/
+.coverage
+
+# Ignore test cache
+.pytest_cache/

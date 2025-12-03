@@ -1,0 +1,44 @@
+# Koyeb Configuration File
+# https://www.koyeb.com/docs/build-and-deploy/deploy-with-koyebfile
+
+name: nextslot-booking
+type: web
+
+# Build configuration
+build:
+  dockerfile:
+    path: Dockerfile
+
+# Deployment configuration  
+deploy:
+  regions:
+    - fra  # Frankfurt, Germany (or use: was, sin, sfo)
+  
+  ports:
+    - port: 8000
+      protocol: http
+  
+  scaling:
+    min: 1
+    max: 2
+  
+  instance_types:
+    - type: nano  # nano, micro, small, medium, large, xlarge
+  
+  env:
+    - key: PORT
+      value: "8000"
+    - key: DEBUG
+      value: "False"
+    - key: DEFAULT_DOMAIN
+      value: "nextslot.in"
+    - key: DEFAULT_SCHEME
+      value: "https"
+  
+  health_checks:
+    - port: 8000
+      path: /
+      interval: 30
+      timeout: 10
+      healthy_threshold: 2
+      unhealthy_threshold: 3
