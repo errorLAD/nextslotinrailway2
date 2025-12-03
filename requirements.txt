@@ -6,6 +6,7 @@ pytz==2023.3
 
 # Database
 psycopg2-binary==2.9.9
+dj-database-url==2.1.0
 
 # Caching & Task Queue
 redis==5.0.1

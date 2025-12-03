@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = ["python310", "gcc", "postgresql"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[phases.build]
+cmds = [
+    "python manage.py collectstatic --noinput",
+]
+
+[start]
+cmd = "python manage.py migrate && gunicorn booking_saas.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120"
