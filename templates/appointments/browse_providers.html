@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Find Service Providers{% endblock %}
+
+{% block extra_css %}
+<style>
+    .provider-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .provider-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .provider-card .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+    .provider-card .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .provider-card .card-footer {
+        background: none;
+        border-top: none;
+    }
+    .service-badge {
+        font-size: 0.8rem;
+        margin: 2px;
+    }
+    .rating {
+        color: #ffc107;
+    }
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">Find Service Providers</h1>
+            <p class="lead text-muted">Browse and book services from our trusted providers</p>
+            
+            <!-- Search and Filter Form -->
+            <form method="get" class="card shadow-sm p-4 mb-4">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="search" name="q" 
+                               value="{{ request.GET.q }}" placeholder="Search by provider name, service, or location">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="service" class="form-label">Service Type</label>
+                        <select class="form-select" id="service" name="service">
+                            <option value="">All Services</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}" {% if request.GET.service == service.id|stringformat:'s' %}selected{% endif %}>
+                                {{ service.service_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Providers Grid -->
+    {% if providers %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for provider in providers %}
+        <div class="col">
+            <div class="card h-100 provider-card">
+                {% if provider.business_photo %}
+                <img src="{{ provider.business_photo.url }}" class="card-img-top" alt="{{ provider.business_name }}">
+                {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="bi bi-building fs-1 text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-1">{{ provider.business_name }}</h5>
+                        <div class="rating">
+                            <i class="bi bi-star-fill"></i>
+                            <span>{{ provider.average_rating|default:'0.0' }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if provider.business_address %}
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-geo-alt-fill text-primary"></i> 
+                        {{ provider.business_address|truncatewords:8 }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if provider.bio %}
+                    <p class="card-text text-muted small mb-3">
+                        {{ provider.bio|truncatewords:20 }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="mt-auto">
+                        <div class="d-flex flex-wrap mb-2">
+                            {% for service in provider.services.all|slice:":4" %}
+                            <span class="badge bg-light text-dark border service-badge">
+                                {{ service.service_name }}
+                            </span>
+                            {% endfor %}
+                            {% if provider.services.count > 4 %}
+                            <span class="badge bg-light text-dark border service-badge">+{{ provider.services.count|add:"-4" }} more</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer w-100">
+                    <a href="{% url 'appointments:public_booking' provider.unique_booking_url %}" 
+                       class="btn btn-primary w-100">
+                        Book Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-5" aria-label="Providers pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Previous
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Next
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="bi bi-search fs-1 text-muted mb-3"></i>
+        <h3>No providers found</h3>
+        <p class="text-muted">
+            We couldn't find any providers matching your search criteria. 
+            Try adjusting your filters or check back later.
+        </p>
+        <a href="{% url 'appointments:browse_providers' %}" class="btn btn-primary mt-3">
+            Clear Filters
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any JavaScript functionality here
+    
+    // Example: Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Handle service filter change
+    document.getElementById('service').addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+</script>
+{% endblock %}

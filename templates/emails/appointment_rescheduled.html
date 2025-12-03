@@ -1,0 +1,77 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Appointment Rescheduled{% endblock %}
+
+{% block content %}
+<h2>Appointment Rescheduled 🔄</h2>
+
+<p>Hi {{ appointment.client_name }},</p>
+
+<p>Your appointment has been rescheduled to a new date and time.</p>
+
+<div class="info-box" style="background-color: #fff3cd; border-left-color: #ffc107;">
+    <h3>❌ Previous Appointment</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Date:</span>
+        <span class="info-value">{{ old_date|date:"l, F j, Y" }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Time:</span>
+        <span class="info-value">{{ old_time|time:"g:i A" }}</span>
+    </div>
+</div>
+
+<div class="info-box" style="background-color: #d4edda; border-left-color: #28a745;">
+    <h3>✅ New Appointment</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Service:</span>
+        <span class="info-value">{{ service.service_name }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Date:</span>
+        <span class="info-value"><strong>{{ appointment.appointment_date|date:"l, F j, Y" }}</strong></span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Time:</span>
+        <span class="info-value"><strong>{{ appointment.appointment_time|time:"g:i A" }}</strong></span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Duration:</span>
+        <span class="info-value">{{ service.duration_minutes }} minutes</span>
+    </div>
+</div>
+
+<div class="info-box">
+    <h3>🏢 Provider Information</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Business:</span>
+        <span class="info-value">{{ provider.business_name }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Phone:</span>
+        <span class="info-value">{{ provider.phone }}</span>
+    </div>
+    
+    {% if provider.business_address %}
+    <div class="info-row">
+        <span class="info-label">Address:</span>
+        <span class="info-value">{{ provider.business_address }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<a href="{{ site_url }}/appointments/{{ appointment.id }}/" class="btn">View Appointment</a>
+
+<p>If you have any questions about this change, please contact the provider directly.</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

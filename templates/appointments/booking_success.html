@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmed - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <!-- Success Icon -->
+                    <div class="mb-4">
+                        <div class="bg-success bg-opacity-10 d-inline-flex p-3 rounded-circle">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                        </div>
+                    </div>
+                    
+                    <h2 class="mb-3">Booking Confirmed!</h2>
+                    <p class="lead text-muted mb-4">
+                        Thank you for your booking. We've sent a confirmation to your email.
+                    </p>
+                    
+                    <!-- Appointment Details -->
+                    <div class="card bg-light border-0 mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="text-muted small mb-1">Appointment ID</div>
+                                    <div class="fw-bold">#{{ appointment.id|stringformat:"06d" }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-muted small mb-1">Status</div>
+                                    <div>
+                                        <span class="badge bg-{{ appointment.status|default:'warning' }}">
+                                            {{ appointment.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-muted small mb-1">Date & Time</div>
+                                    <div class="fw-bold">
+                                        {{ appointment.appointment_date|date:"F j, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-muted small mb-1">Service</div>
+                                    <div class="fw-bold">{{ appointment.service.service_name }}</div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="text-muted small mb-1">Provider</div>
+                                    <div class="fw-bold">{{ appointment.service_provider.business_name }}</div>
+                                    <div class="text-muted small">
+                                        {{ appointment.service_provider.business_address }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Next Steps -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">What's Next?</h5>
+                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                            <div class="text-center">
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-calendar-check text-primary" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div class="small">Add to your calendar</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-envelope text-primary" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div class="small">Check your email for confirmation</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-telephone text-primary" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div class="small">Call us if you have questions</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mt-4">
+                        <a href="/" class="btn btn-outline-primary">
+                            <i class="bi bi-house-door me-2"></i>Back to Home
+                        </a>
+                        <a href="{% url 'appointments:my_appointments' %}" class="btn btn-primary">
+                            <i class="bi bi-calendar-week me-2"></i>View My Appointments
+                        </a>
+                    </div>
+                    
+                    <!-- Add to Calendar Button (Google Calendar) -->
+                    <div class="mt-4">
+                        <a href="https://www.google.com/calendar/render?action=TEMPLATE&text=Appointment+with+{{ appointment.service_provider.business_name|urlencode }}&dates={{ appointment.appointment_date|date:'Ymd' }}T{{ appointment.appointment_time|time:'His'|slice:':4' }}00Z/{{ appointment.appointment_date|date:'Ymd' }}T{{ appointment.appointment_time|time:'His'|slice:':4' }}00Z&details=Service%3A+{{ appointment.service.service_name|urlencode }}%0AProvider%3A+{{ appointment.service_provider.business_name|urlencode }}%0A{{ appointment.notes|urlencode }}&location={{ appointment.service_provider.business_address|urlencode }}" 
+                           target="_blank" 
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-calendar-plus me-2"></i>Add to Google Calendar
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Need Help? -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body text-center">
+                    <h5 class="mb-3">Need help with your booking?</h5>
+                    <p class="text-muted mb-0">
+                        Contact us at <a href="tel:{{ appointment.service_provider.phone }}">{{ appointment.service_provider.phone }}</a> or 
+                        <a href="mailto:{{ appointment.service_provider.user.email }}">{{ appointment.service_provider.user.email }}</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any client-side functionality here if needed
+});
+</script>
+{% endblock %}

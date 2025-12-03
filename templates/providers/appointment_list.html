@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointments - {{ provider.business_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-calendar-check"></i> Appointments</h2>
+            <p class="text-muted mb-0">Manage your bookings</p>
+        </div>
+        <div>
+            {% if provider.can_create_appointment %}
+            <a href="{% url 'providers:create_appointment' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Appointment
+            </a>
+            {% else %}
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#limitModal">
+                <i class="bi bi-exclamation-triangle"></i> Limit Reached
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Limit Warning Banner -->
+    {% if not provider.can_create_appointment %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Monthly Limit Reached!</h5>
+        <p class="mb-0">
+            You've used all {{ provider.appointments_this_month }} appointments for this month on the FREE plan.
+            <a href="{% url 'subscriptions:upgrade_to_pro' %}" class="alert-link">Upgrade to PRO</a> for unlimited bookings!
+        </p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Date Filter -->
+                <div class="col-md-3">
+                    <label class="form-label">Date Range</label>
+                    <select name="date_filter" class="form-select" onchange="this.form.submit()">
+                        <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All Time</option>
+                        <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if date_filter == 'week' %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if date_filter == 'month' %}selected{% endif %}>This Month</option>
+                    </select>
+                </div>
+                
+                <!-- Status Filter -->
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="no_show" {% if status_filter == 'no_show' %}selected{% endif %}>No Show</option>
+                    </select>
+                </div>
+                
+                <!-- Search -->
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Client name, phone, email..." 
+                           value="{{ search }}">
+                </div>
+                
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Appointments Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Client</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ appointment.appointment_date|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ appointment.appointment_time|time:"g:i A" }}</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold">{{ appointment.client_name }}</div>
+                                <small class="text-muted">
+                                    <i class="bi bi-telephone"></i> {{ appointment.client_phone }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ appointment.service.service_name }}</span>
+                                <br>
+                                <small class="text-muted">{{ appointment.service.duration_minutes }} min</small>
+                            </td>
+                            <td>
+                                {% if appointment.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif appointment.status == 'confirmed' %}
+                                    <span class="badge bg-success">Confirmed</span>
+                                {% elif appointment.status == 'completed' %}
+                                    <span class="badge bg-secondary">Completed</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% elif appointment.status == 'no_show' %}
+                                    <span class="badge bg-dark">No Show</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if appointment.payment_status == 'paid' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif appointment.payment_status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif appointment.payment_status == 'refunded' %}
+                                    <span class="badge bg-secondary">Refunded</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">₹{{ appointment.total_price }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'providers:appointment_detail' appointment.pk %}" 
+                                       class="btn btn-outline-primary" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'providers:edit_appointment' appointment.pk %}" 
+                                       class="btn btn-outline-secondary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% if appointment.status == 'pending' %}
+                                    <a href="{% url 'providers:confirm_appointment' appointment.pk %}" 
+                                       class="btn btn-outline-success" title="Confirm">
+                                        <i class="bi bi-check-circle"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&date_filter={{ date_filter }}&status={{ status_filter }}&search={{ search }}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&date_filter={{ date_filter }}&status={{ status_filter }}&search={{ search }}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&date_filter={{ date_filter }}&status={{ status_filter }}&search={{ search }}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x display-1 text-muted"></i>
+                <h5 class="mt-3">No appointments found</h5>
+                <p class="text-muted">Try adjusting your filters or create a new appointment</p>
+                {% if provider.can_create_appointment %}
+                <a href="{% url 'providers:create_appointment' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create Appointment
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+</div>
+
+<!-- Limit Reached Modal -->
+<div class="modal fade" id="limitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Monthly Limit Reached</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>You've used all <strong>{{ provider.appointments_this_month }} appointments</strong> for this month on the FREE plan.</p>
+                
+                <div class="alert alert-info">
+                    <h6>Upgrade to PRO for:</h6>
+                    <ul class="mb-0">
+                        <li>✅ Unlimited appointments every month</li>
+                        <li>✅ Unlimited services</li>
+                        <li>✅ WhatsApp notifications</li>
+                        <li>✅ Advanced features</li>
+                    </ul>
+                </div>
+                
+                <p class="mb-0">Just <strong>₹199/month</strong> - Cancel anytime!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Maybe Later</button>
+                <a href="{% url 'subscriptions:upgrade_to_pro' %}" class="btn btn-warning">
+                    <i class="bi bi-star-fill"></i> Upgrade Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Appointments{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Appointments</h2>
+        <div>
+            <a href="{% url 'appointments:browse_providers' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Book New Appointment
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white">
+            <ul class="nav nav-tabs card-header-tabs" id="appointmentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab">
+                        Upcoming
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab">
+                        Past Appointments
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab">
+                        Cancelled
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="appointmentTabsContent">
+                <!-- Upcoming Appointments Tab -->
+                <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+                    {% if upcoming_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Service</th>
+                                        <th>Provider</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appt in upcoming_appointments %}
+                                    <tr>
+                                        <td>
+                                            {{ appt.appointment_date|date:"M d, Y" }}
+                                            <div class="text-muted small">{{ appt.appointment_time|time:"g:i A" }}</div>
+                                        </td>
+                                        <td>{{ appt.service.name }}</td>
+                                        <td>{{ appt.service_provider.business_name }}</td>
+                                        <td>
+                                            <span class="badge {% if appt.status == 'confirmed' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ appt.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'providers:appointment_detail' appt.id %}" class="btn btn-sm btn-outline-primary">
+                                                View
+                                            </a>
+                                            {% if appt.can_be_cancelled %}
+                                            <a href="{% url 'appointments:cancel_appointment' appt.id %}" class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                                                Cancel
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                            <p class="mt-3">No upcoming appointments found.</p>
+                            <a href="{% url 'appointments:browse_providers' %}" class="btn btn-primary">
+                                Book an Appointment
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Past Appointments Tab -->
+                <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+                    {% if past_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Service</th>
+                                        <th>Provider</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appt in past_appointments %}
+                                    <tr>
+                                        <td>
+                                            {{ appt.appointment_date|date:"M d, Y" }}
+                                            <div class="text-muted small">{{ appt.appointment_time|time:"g:i A" }}</div>
+                                        </td>
+                                        <td>{{ appt.service.name }}</td>
+                                        <td>{{ appt.service_provider.business_name }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ appt.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'providers:appointment_detail' appt.id %}" class="btn btn-sm btn-outline-primary">
+                                                View
+                                            </a>
+                                            {% if appt.can_be_rebooked %}
+                                            <a href="{% url 'appointments:browse_providers' %}" class="btn btn-sm btn-outline-success">
+                                                Rebook
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-calendar-check text-muted" style="font-size: 3rem;"></i>
+                            <p class="mt-3">No past appointments found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Cancelled Appointments Tab -->
+                <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+                    {% if cancelled_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Service</th>
+                                        <th>Provider</th>
+                                        <th>Cancelled On</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appt in cancelled_appointments %}
+                                    <tr>
+                                        <td>
+                                            {{ appt.appointment_date|date:"M d, Y" }}
+                                            <div class="text-muted small">{{ appt.appointment_time|time:"g:i A" }}</div>
+                                        </td>
+                                        <td>{{ appt.service.name }}</td>
+                                        <td>{{ appt.service_provider.business_name }}</td>
+                                        <td>{{ appt.updated_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'providers:appointment_detail' appt.id %}" class="btn btn-sm btn-outline-primary">
+                                                View
+                                            </a>
+                                            {% if appt.can_be_rebooked %}
+                                            <a href="{% url 'appointments:browse_providers' %}" class="btn btn-sm btn-outline-success">
+                                                Rebook
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                            <p class="mt-3">No cancelled appointments found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add some custom styling -->
+<style>
+    .nav-tabs .nav-link {
+        color: #495057;
+        font-weight: 500;
+    }
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        border-bottom: 3px solid #0d6efd;
+    }
+    .appointment-actions .btn {
+        margin: 0 2px;
+    }
+</style>
+{% endblock %}

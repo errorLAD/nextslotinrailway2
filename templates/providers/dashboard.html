@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load plan_tags %}
+
+{% block title %}Dashboard - {{ provider.business_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Welcome back, {{ user.get_short_name }}! 👋</h2>
+            <p class="text-muted mb-0">Here's what's happening with your business today</p>
+        </div>
+        <div>
+            <a href="{% url 'providers:create_appointment' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Appointment
+            </a>
+        </div>
+    </div>
+    
+    <!-- Plan Status Banner (for FREE users near limit) -->
+    {% if not provider.has_pro_features and provider.appointments_this_month >= 4 %}
+    <div class="upgrade-banner mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    {% if provider.appointments_this_month >= 5 %}
+                        You've reached your monthly limit!
+                    {% else %}
+                        Almost at your limit!
+                    {% endif %}
+                </h5>
+                <p class="mb-0">
+                    You've used {{ provider.appointments_this_month }} out of 5 appointments this month.
+                    {% if provider.appointments_this_month >= 5 %}
+                        Upgrade to PRO for unlimited bookings!
+                    {% else %}
+                        Only {{ provider.remaining_appointments }} left. Upgrade to PRO for unlimited bookings!
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'subscriptions:upgrade_to_pro' %}" class="btn btn-upgrade btn-lg">
+                    <i class="bi bi-star-fill"></i> Upgrade Now - ₹199/month
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Today's Appointments -->
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="icon" style="background-color: #dbeafe; color: #3b82f6;">
+                    <i class="bi bi-calendar-day"></i>
+                </div>
+                <h3 class="mb-1">{{ today_count }}</h3>
+                <p class="text-muted mb-0">Today's Appointments</p>
+            </div>
+        </div>
+        
+        <!-- This Week -->
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="icon" style="background-color: #dcfce7; color: #10b981;">
+                    <i class="bi bi-calendar-week"></i>
+                </div>
+                <h3 class="mb-1">{{ week_count }}</h3>
+                <p class="text-muted mb-0">This Week</p>
+            </div>
+        </div>
+        
+        <!-- Month Revenue -->
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="icon" style="background-color: #fef3c7; color: #f59e0b;">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+                <h3 class="mb-1">₹{{ month_revenue|floatformat:0 }}</h3>
+                <p class="text-muted mb-0">This Month Revenue</p>
+            </div>
+        </div>
+        
+        <!-- Pending Approvals -->
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="icon" style="background-color: #fee2e2; color: #ef4444;">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h3 class="mb-1">{{ pending_count }}</h3>
+                <p class="text-muted mb-0">Pending Approval</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Today's Schedule -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Today's Schedule</h5>
+                        <a href="{% url 'providers:appointment_list' %}?date_filter=today" class="btn btn-sm btn-outline-primary">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if today_appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in today_appointments %}
+                        <div class="list-group-item px-0">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="text-center">
+                                        <div class="fw-bold">{{ appointment.appointment_time|time:"g:i A" }}</div>
+                                        <small class="text-muted">{{ appointment.service.duration_minutes }}min</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h6 class="mb-1">{{ appointment.client_name }}</h6>
+                                    <p class="mb-0 text-muted small">
+                                        <i class="bi bi-briefcase"></i> {{ appointment.service.service_name }}
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-telephone"></i> {{ appointment.client_phone }}
+                                    </p>
+                                </div>
+                                <div class="col-auto">
+                                    {% if appointment.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif appointment.status == 'confirmed' %}
+                                        <span class="badge bg-success">Confirmed</span>
+                                    {% elif appointment.status == 'completed' %}
+                                        <span class="badge bg-secondary">Completed</span>
+                                    {% elif appointment.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'providers:appointment_detail' appointment.pk %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No appointments scheduled for today</p>
+                        <a href="{% url 'providers:create_appointment' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Appointment
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions & Upcoming -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'providers:create_appointment' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> New Appointment
+                        </a>
+                        <a href="{% url 'providers:add_service' %}" class="btn btn-outline-success">
+                            <i class="bi bi-briefcase"></i> Add Service
+                        </a>
+                        <a href="{% url 'providers:calendar' %}" class="btn btn-outline-info">
+                            <i class="bi bi-calendar3"></i> View Calendar
+                        </a>
+                        <a href="{% url 'appointments:public_booking' provider.unique_booking_url %}" 
+                           class="btn btn-outline-secondary" target="_blank">
+                            <i class="bi bi-box-arrow-up-right"></i> View Booking Page
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Appointments -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Upcoming</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in upcoming_appointments %}
+                        <div class="list-group-item px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-bold small">{{ appointment.client_name }}</div>
+                                    <div class="text-muted small">
+                                        {{ appointment.appointment_date|date:"M d" }} at 
+                                        {{ appointment.appointment_time|time:"g:i A" }}
+                                    </div>
+                                </div>
+                                <span class="badge bg-primary">{{ appointment.service.service_name|truncatewords:2 }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center mb-0">No upcoming appointments</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Booking URL -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="bi bi-link-45deg"></i> Your Booking URL</h6>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" 
+                               value="{{ request.scheme }}://{{ request.get_host }}{% url 'appointments:public_booking' provider.unique_booking_url %}" 
+                               id="bookingUrl" readonly>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" onclick="copyBookingUrl()">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Share this link with your clients</small>
+                </div>
+            </div>
+            
+            <!-- Custom Domain -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="mb-2"><i class="bi bi-globe"></i> Custom Domain</h6>
+                    <form method="post" action="{% url 'providers:add_custom_domain' %}" class="mb-2">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control form-control-sm" 
+                                   name="custom_domain" 
+                                   placeholder="yourdomain.com" 
+                                   value="{{ provider.custom_domain|default:'' }}"
+                                   required>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-check-lg"></i> Save
+                            </button>
+                        </div>
+                        <small class="text-muted">Enter your domain (e.g., book.yourdomain.com)</small>
+                    </form>
+                    {% if provider.custom_domain %}
+                    <div class="alert alert-info p-2 small mb-0">
+                        <i class="bi bi-info-circle"></i> 
+                        Don't forget to add a CNAME record in your DNS settings pointing to: {{ request.get_host }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+function copyBookingUrl() {
+    const input = document.getElementById('bookingUrl');
+    input.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => {
+        btn.innerHTML = originalHTML;
+    }, 2000);
+}
+</script>
+{% endblock %}

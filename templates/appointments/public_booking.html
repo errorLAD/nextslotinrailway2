@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - {{ provider.business_name }}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #10b981;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .booking-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .provider-header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .provider-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 4px solid #f0f0f0;
+        }
+        
+        .booking-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .service-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .service-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        
+        .service-card.selected {
+            border-color: var(--primary-color);
+            background-color: #f0f4ff;
+        }
+        
+        .service-card input[type="radio"] {
+            display: none;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+        }
+        
+        .step::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: -1;
+        }
+        
+        .step:first-child::before {
+            left: 50%;
+        }
+        
+        .step:last-child::before {
+            right: 50%;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .step.active .step-number {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .time-slot {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        
+        .time-slot:hover:not(.disabled) {
+            border-color: var(--primary-color);
+            background-color: #f0f4ff;
+        }
+        
+        .time-slot.selected {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .time-slot.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f9fafb;
+        }
+        
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .contact-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+        }
+        
+        .phone-btn {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .booking-step {
+            display: none;
+        }
+        
+        .booking-step.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .booking-container {
+                padding: 0 15px;
+            }
+            
+            .provider-header,
+            .booking-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="booking-container">
+        <!-- Top Navigation -->
+        <div class="d-flex justify-content-end mb-4">
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i> My Account
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="{% url 'appointments:my_appointments' %}">
+                            <i class="bi bi-calendar-check me-2"></i>My Appointments
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
+                            <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                        </a></li>
+                    </ul>
+                </div>
+            {% else %}
+                <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#authModal">
+                    <i class="bi bi-person-circle me-1"></i> Sign In
+                </button>
+                <a href="{% url 'accounts:register_choice' %}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-1"></i> Sign Up
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Login/Signup Modal -->
+        <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="authModalLabel">Sign In or Create Account</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav nav-tabs nav-fill mb-4" id="authTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">
+                                    Sign In
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab">
+                                    Create Account
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="authTabsContent">
+                            <!-- Login Form -->
+                            <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                                <form method="post" action="{% url 'accounts:login' %}">
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <div class="mb-3">
+                                        <label for="login-email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="login-email" name="username" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="login-password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="login-password" name="password" required>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary">Sign In</button>
+                                        <a href="{% url 'accounts:password_reset' %}" class="text-center d-block small">Forgot password?</a>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Signup Form -->
+                            <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
+                                <p class="text-muted small mb-3">Create a client account to book appointments</p>
+                                <form method="post" action="{% url 'accounts:register_client' %}">
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="signup-first-name" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="signup-first-name" name="first_name" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="signup-last-name" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="signup-last-name" name="last_name" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="signup-email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="signup-email" name="email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="signup-phone" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="signup-phone" name="phone" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="signup-password1" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="signup-password1" name="password1" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="signup-password2" class="form-label">Confirm Password</label>
+                                        <input type="password" class="form-control" id="signup-password2" name="password2" required>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                        <label class="form-check-label small" for="terms">
+                                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> and 
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                                        </label>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">Create Account</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Provider Header -->
+        <div class="provider-header">
+            {% if provider.profile_image %}
+            <img src="{{ provider.profile_image.url }}" alt="{{ provider.business_name }}" class="provider-logo">
+            {% else %}
+            <div class="provider-logo bg-primary text-white d-flex align-items-center justify-content-center" style="font-size: 40px;">
+                {{ provider.business_name|slice:":1"|upper }}
+            </div>
+            {% endif %}
+            
+            <h2 class="mb-2">{{ provider.business_name }}</h2>
+            <p class="text-muted mb-3">{{ provider.get_business_type_display }}</p>
+            
+            {% if provider.description %}
+            <p class="mb-3">{{ provider.description }}</p>
+            {% endif %}
+            
+            <!-- Contact Buttons -->
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                {% if provider.phone %}
+                <a href="tel:{{ provider.phone }}" class="contact-btn phone-btn">
+                    <i class="bi bi-telephone-fill"></i> Call Now
+                </a>
+                {% endif %}
+                
+                {% if provider.whatsapp_number %}
+                <a href="https://wa.me/91{{ provider.whatsapp_number }}" target="_blank" class="contact-btn whatsapp-btn">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                {% endif %}
+            </div>
+            
+            {% if provider.business_address %}
+            <div class="mt-3 text-muted">
+                <i class="bi bi-geo-alt-fill"></i> {{ provider.business_address }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Booking Form -->
+        <div class="booking-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">Book Your Appointment</h3>
+                {% if not user.is_authenticated %}
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#authModal">
+                    <i class="bi bi-person-circle me-1"></i> Sign In / Register
+                </button>
+                {% endif %}
+            </div>
+            
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" id="step-indicator-1">
+                    <div class="step-number">1</div>
+                    <div class="step-label small">Service</div>
+                </div>
+                <div class="step" id="step-indicator-2">
+                    <div class="step-number">2</div>
+                    <div class="step-label small">Date & Time</div>
+                </div>
+                <div class="step" id="step-indicator-3">
+                    <div class="step-number">3</div>
+                    <div class="step-label small">Your Details</div>
+                </div>
+            </div>
+            
+            <form method="post" action="{% url 'appointments:confirm_booking' provider.unique_booking_url %}" id="bookingForm">
+                {% csrf_token %}
+                
+                <!-- Step 1: Select Service -->
+                <div class="booking-step active" id="step-1">
+                    <h5 class="mb-3">Select a Service</h5>
+                    
+                    {% if services %}
+                    <div class="services-list">
+                        {% for service in services %}
+                        <label class="service-card" for="service-{{ service.id }}">
+                            <input type="radio" name="service" id="service-{{ service.id }}" 
+                                   value="{{ service.id }}" required 
+                                   data-duration="{{ service.duration_minutes }}"
+                                   data-price="{{ service.price }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ service.service_name }}</h6>
+                                    {% if service.description %}
+                                    <p class="text-muted small mb-0">{{ service.description|truncatewords:15 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold text-primary">₹{{ service.price }}</div>
+                                    <small class="text-muted">{{ service.duration_minutes }} min</small>
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-lg w-100 mt-3" onclick="nextStep(2)">
+                        Continue <i class="bi bi-arrow-right"></i>
+                    </button>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> No services available at the moment.
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Step 2: Select Date & Time -->
+                <div class="booking-step" id="step-2">
+                    <h5 class="mb-3">Choose Date & Time</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Date</label>
+                            <input type="date" name="appointment_date" id="appointmentDate" 
+                                   class="form-control form-control-lg" required
+                                   min="{{ today }}" onchange="loadTimeSlots()">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Time</label>
+                            <div id="timeSlots">
+                                <p class="text-muted">Please select a date first</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(1)">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn btn-primary btn-lg flex-grow-1" onclick="nextStep(3)">
+                            Continue <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Client Details -->
+                <div class="booking-step" id="step-3">
+                    <h5 class="mb-3">Your Contact Information</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="client_name" class="form-control form-control-lg" 
+                               placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" name="client_phone" class="form-control form-control-lg" 
+                               placeholder="9876543210" required pattern="[0-9]{10}">
+                        <small class="text-muted">We'll send booking confirmation to this number</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email (Optional)</label>
+                        <input type="email" name="client_email" class="form-control form-control-lg" 
+                               placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Special Requests (Optional)</label>
+                        <textarea name="notes" class="form-control" rows="3" 
+                                  placeholder="Any special requests or notes..."></textarea>
+                    </div>
+                    
+                    <!-- Booking Summary -->
+                    <div class="alert alert-info">
+                        <h6 class="mb-2">Booking Summary</h6>
+                        <div id="bookingSummary"></div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-lg" onclick="prevStep(2)">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-success btn-lg flex-grow-1">
+                            <i class="bi bi-check-circle"></i> Confirm Booking
+                        </button>
+                    </div>
+                </div>
+                
+            </form>
+        </div>
+        
+        <!-- Business Hours -->
+        {% if availability %}
+        <div class="booking-card">
+            <h5 class="mb-3"><i class="bi bi-clock"></i> Business Hours</h5>
+            <div class="row">
+                {% for slot in availability %}
+                <div class="col-md-6 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">{{ slot.get_day_of_week_display }}</span>
+                        {% if slot.is_available %}
+                        <span class="text-success">
+                            {{ slot.start_time|time:"g:i A" }} - {{ slot.end_time|time:"g:i A" }}
+                        </span>
+                        {% else %}
+                        <span class="text-danger">Closed</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Powered By -->
+        <div class="text-center mt-4">
+            <small class="text-white">Powered by <strong>BookingSaaS</strong></small>
+        </div>
+        
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        let currentStep = 1;
+        let selectedService = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('appointmentDate').setAttribute('min', today);
+        
+        // Service selection
+        document.querySelectorAll('input[name="service"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove selected class from all cards
+                document.querySelectorAll('.service-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked card
+                this.closest('.service-card').classList.add('selected');
+                
+                selectedService = {
+                    id: this.value,
+                    name: this.closest('.service-card').querySelector('h6').textContent,
+                    duration: this.dataset.duration,
+                    price: this.dataset.price
+                };
+            });
+        });
+        
+        function nextStep(step) {
+            // Validation
+            if (step === 2 && !selectedService) {
+                alert('Please select a service');
+                return;
+            }
+            
+            if (step === 3) {
+                const date = document.getElementById('appointmentDate').value;
+                const timeInput = document.querySelector('input[name="appointment_time"]:checked');
+                
+                if (!date) {
+                    alert('Please select a date');
+                    return;
+                }
+                
+                if (!timeInput) {
+                    alert('Please select a time slot');
+                    return;
+                }
+                
+                selectedDate = date;
+                selectedTime = timeInput.value;
+                
+                // Update booking summary
+                updateBookingSummary();
+            }
+            
+            // Hide current step
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            document.getElementById(`step-indicator-${currentStep}`).classList.remove('active');
+            document.getElementById(`step-indicator-${currentStep}`).classList.add('completed');
+            
+            // Show next step
+            currentStep = step;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            document.getElementById(`step-indicator-${currentStep}`).classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function prevStep(step) {
+            // Hide current step
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            document.getElementById(`step-indicator-${currentStep}`).classList.remove('active');
+            
+            // Show previous step
+            currentStep = step;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            document.getElementById(`step-indicator-${currentStep}`).classList.add('active');
+            document.getElementById(`step-indicator-${currentStep}`).classList.remove('completed');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function loadTimeSlots() {
+            const date = document.getElementById('appointmentDate').value;
+            const timeSlotsContainer = document.getElementById('timeSlots');
+            
+            if (!date) {
+                timeSlotsContainer.innerHTML = '<p class="text-muted">Please select a date first</p>';
+                return;
+            }
+            
+            // Show loading
+            timeSlotsContainer.innerHTML = '<p class="text-muted">Loading available slots...</p>';
+            
+            // Generate time slots (9 AM to 6 PM, 30-minute intervals)
+            // In production, fetch from server based on availability and existing bookings
+            const slots = [];
+            for (let hour = 9; hour < 18; hour++) {
+                for (let minute = 0; minute < 60; minute += 30) {
+                    const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                    const displayTime = new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    slots.push({ value: time, display: displayTime });
+                }
+            }
+            
+            // Render time slots
+            let html = '<div class="row g-2">';
+            slots.forEach(slot => {
+                html += `
+                    <div class="col-6 col-md-4">
+                        <label class="time-slot">
+                            <input type="radio" name="appointment_time" value="${slot.value}" required>
+                            ${slot.display}
+                        </label>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            timeSlotsContainer.innerHTML = html;
+            
+            // Add click handlers
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.addEventListener('click', function() {
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input').checked = true;
+                });
+            });
+        }
+        
+        function updateBookingSummary() {
+            const serviceName = selectedService.name;
+            const servicePrice = selectedService.price;
+            const serviceDuration = selectedService.duration;
+            const dateObj = new Date(selectedDate);
+            const dateFormatted = dateObj.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const timeObj = new Date(`2000-01-01T${selectedTime}`);
+            const timeFormatted = timeObj.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            
+            const summary = `
+                <div><strong>Service:</strong> ${serviceName}</div>
+                <div><strong>Date:</strong> ${dateFormatted}</div>
+                <div><strong>Time:</strong> ${timeFormatted}</div>
+                <div><strong>Duration:</strong> ${serviceDuration} minutes</div>
+                <div class="mt-2 pt-2 border-top"><strong>Total:</strong> ₹${servicePrice}</div>
+            `;
+            
+            document.getElementById('bookingSummary').innerHTML = summary;
+        }
+        // Show auth modal if user is not authenticated
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if show_auth_modal %}
+                const authModal = new bootstrap.Modal(document.getElementById('authModal'));
+                authModal.show();
+                
+                // Add click handler for sign up link in the login tab
+                document.querySelector('a[href="#signup"]').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const signupTab = new bootstrap.Tab(this);
+                    signupTab.show();
+                });
+                
+                // Add click handler for sign in link in the signup tab
+                document.querySelector('a[href="#login"]').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const loginTab = new bootstrap.Tab(this);
+                    loginTab.show();
+                });
+            {% endif %}
+            
+            // Handle form submissions to show errors in modal if any
+            const loginForm = document.querySelector('#login form');
+            const signupForm = document.querySelector('#signup form');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    // Add any client-side validation here if needed
+                });
+            }
+            
+            if (signupForm) {
+                signupForm.addEventListener('submit', function(e) {
+                    // Add any client-side validation here if needed
+                });
+            }
+        });
+    </script>
+</body>
+</html>

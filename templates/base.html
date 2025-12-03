@@ -1,0 +1,333 @@
+{% load static %}
+{% load plan_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BookingSaaS{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'subscriptions/css/subscriptions.css' %}">
+    <style>
+        /* Fallback styles in case external CSS doesn't load */
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .pricing-feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .pricing-feature svg {
+            color: #10B981;
+            margin-right: 0.75rem;
+        }
+    </style>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .plan-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .plan-badge.free {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .plan-badge.pro {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .plan-badge.trial {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .usage-meter {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .usage-progress {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #dee2e6;
+            overflow: hidden;
+        }
+        
+        .usage-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            transition: width 0.3s;
+        }
+        
+        .usage-progress-bar.warning {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .usage-progress-bar.danger {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .upgrade-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-upgrade {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-upgrade:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    
+    {% if user.is_authenticated and user.is_provider %}
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="px-3 mb-4">
+            <h4 class="mb-0">📅 BookingSaaS</h4>
+            {% if user.provider_profile %}
+                <small class="text-white-50">{{ user.provider_profile.business_name }}</small>
+            {% endif %}
+        </div>
+        
+        {% if user.provider_profile %}
+        <!-- Plan Status Widget -->
+        <div class="px-3 mb-3">
+            <div class="bg-white bg-opacity-10 rounded p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">Current Plan</span>
+                    {% if user|is_pro %}
+                        <span class="plan-badge pro">PRO</span>
+                    {% else %}
+                        <span class="plan-badge free">FREE</span>
+                    {% endif %}
+                </div>
+                
+                {% if not user|is_pro %}
+                <div class="small mb-2">
+                    <strong>{{ user|appointments_used }}/5</strong> bookings used
+                </div>
+                <div class="progress" style="height: 6px;">
+                    {% with percentage=user|appointments_used|floatformat:0 %}
+                    {% with calc_percentage=percentage|add:"0"|mul:"20" %}
+                    <div class="progress-bar {% if calc_percentage >= 80 %}bg-danger{% elif calc_percentage >= 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                         style="width: {{ calc_percentage }}%"></div>
+                    {% endwith %}
+                    {% endwith %}
+                </div>
+                <a href="{% url 'subscriptions:pricing' %}" class="btn btn-sm btn-light w-100 mt-2">
+                    <i class="bi bi-star-fill"></i> Upgrade to PRO
+                </a>
+                {% else %}
+                <div class="small text-white-50">
+                    <i class="bi bi-infinity"></i> Unlimited bookings
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <nav class="nav flex-column">
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+               href="{% url 'providers:dashboard' %}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}" 
+               href="{% url 'providers:calendar' %}">
+                <i class="bi bi-calendar3"></i> Calendar
+            </a>
+            <a class="nav-link {% if 'appointment' in request.resolver_match.url_name %}active{% endif %}" 
+               href="{% url 'providers:appointment_list' %}">
+                <i class="bi bi-calendar-check"></i> Appointments
+            </a>
+            <a class="nav-link {% if 'service' in request.resolver_match.url_name %}active{% endif %}" 
+               href="{% url 'providers:service_list' %}">
+                <i class="bi bi-briefcase"></i> Services
+            </a>
+            <a class="nav-link {% if 'availability' in request.resolver_match.url_name %}active{% endif %}" 
+               href="{% url 'providers:manage_availability' %}">
+                <i class="bi bi-clock"></i> Availability
+            </a>
+            <a class="nav-link {% if 'profile' in request.resolver_match.url_name %}active{% endif %}" 
+               href="{% url 'providers:edit_profile' %}">
+                <i class="bi bi-person-circle"></i> Profile
+            </a>
+            <a class="nav-link {% if 'billing' in request.resolver_match.url_name %}active{% endif %}" 
+               href="{% url 'providers:billing' %}">
+                <i class="bi bi-credit-card"></i> Billing
+            </a>
+            
+            <hr class="text-white-50">
+            
+            <a class="nav-link" href="{% url 'subscriptions:pricing' %}">
+                <i class="bi bi-star"></i> Upgrade to PRO
+            </a>
+            <a class="nav-link" href="{% url 'accounts:logout' %}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </nav>
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <div class="{% if user.is_authenticated and user.is_provider %}main-content{% else %}container mt-5{% endif %}">
+        
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'error' %}
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                {% elif message.tags == 'success' %}
+                    <i class="bi bi-check-circle-fill"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                {% else %}
+                    <i class="bi bi-info-circle-fill"></i>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery (for AJAX) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

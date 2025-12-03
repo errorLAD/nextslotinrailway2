@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if provider.business_name %}{{ provider.business_name }} - {% endif %}Book an Appointment</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply bg-gray-50 text-gray-800;
+        }
+        
+        .booking-container {
+            max-width: 1200px;
+            @apply mx-auto px-4 py-8;
+        }
+        
+        .header-card {
+            @apply bg-white rounded-2xl shadow-lg overflow-hidden mb-8;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+        }
+        
+        .service-card {
+            @apply border border-gray-200 rounded-xl p-6 transition-all duration-200 hover:shadow-md cursor-pointer;
+        }
+        
+        .service-card.selected {
+            @apply border-primary-500 ring-2 ring-primary-500 ring-opacity-50;
+        }
+        
+        .time-slot {
+            @apply border border-gray-200 rounded-lg p-3 text-center cursor-pointer transition-colors duration-200;
+        }
+        
+        .time-slot:hover:not(.booked) {
+            @apply border-primary-500 bg-primary-50;
+        }
+        
+        .time-slot.selected {
+            @apply bg-primary-600 border-primary-600 text-white;
+        }
+        
+        .time-slot.booked {
+            @apply bg-gray-100 text-gray-400 cursor-not-allowed;
+        }
+        
+        .step-indicator {
+            @apply flex items-center justify-between mb-8 relative;
+        }
+        
+        .step {
+            @apply flex flex-col items-center relative z-10;
+        }
+        
+        .step-number {
+            @apply w-10 h-10 rounded-full flex items-center justify-center font-semibold mb-2;
+            background-color: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .step.active .step-number {
+            @apply bg-primary-600 text-white;
+        }
+        
+        .step.completed .step-number {
+            @apply bg-green-500 text-white;
+        }
+        
+        .step-line {
+            @apply absolute top-5 left-0 right-0 h-0.5 bg-gray-200 -z-1;
+        }
+        
+        .step-line-progress {
+            @apply absolute top-5 left-0 h-0.5 bg-primary-600 transition-all duration-300;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-calendar-check text-primary-600 text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-900">Bookify</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="#" class="text-gray-600 hover:text-primary-600">Home</a></li>
+                    <li><a href="#services" class="text-gray-600 hover:text-primary-600">Services</a></li>
+                    <li><a href="#about" class="text-gray-600 hover:text-primary-600">About</a></li>
+                    <li><a href="#contact" class="text-gray-600 hover:text-primary-600">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="booking-container">
+        <!-- Provider Header -->
+        <div class="header-card p-8 mb-12">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="w-24 h-24 rounded-full bg-white p-1 shadow-md mb-4 md:mb-0 md:mr-6">
+                    <img src="{{ provider.logo.url|default:'https://via.placeholder.com/150' }}" 
+                         alt="{{ provider.business_name }}" 
+                         class="w-full h-full rounded-full object-cover">
+                </div>
+                <div class="text-center md:text-left">
+                    <h1 class="text-3xl font-bold mb-2">{{ provider.business_name }}</h1>
+                    <p class="text-primary-100 mb-4">{{ provider.tagline|default:"Professional services at your convenience" }}</p>
+                    <div class="flex flex-wrap justify-center md:justify-start gap-4">
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-star text-yellow-400 mr-1"></i>
+                            <span>4.9 (128 reviews)</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            <span>{{ provider.business_address|default:"City, Country" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Steps -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <div class="step-indicator">
+                <div class="step-line"></div>
+                <div class="step-line-progress" style="width: 33.33%;"></div>
+                
+                <div class="step active">
+                    <div class="step-number">1</div>
+                    <span class="text-sm font-medium text-gray-700">Service</span>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <span class="text-sm font-medium text-gray-500">Time</span>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <span class="text-sm font-medium text-gray-500">Details</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Select Service -->
+            <div id="step-1" class="booking-step active">
+                <h2 class="text-2xl font-bold mb-6">Select a Service</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for service in services %}
+                    <div class="service-card" onclick="selectService({{ forloop.counter0 }})" data-service-id="{{ service.id }}">
+                        <div class="flex items-start">
+                            <div class="bg-primary-100 p-3 rounded-lg mr-4">
+                                <i class="fas fa-cut text-primary-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">{{ service.service_name }}</h3>
+                                <p class="text-gray-600 text-sm mt-1">{{ service.duration }} min • ${{ service.price|floatformat:2 }}</p>
+                                <p class="text-sm text-gray-500 mt-2 line-clamp-2">{{ service.description|default:"Professional service" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-8 flex justify-end">
+                    <button onclick="nextStep(1)" class="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors">
+                        Next: Select Time
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Time -->
+            <div id="step-2" class="booking-step hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <button onclick="prevStep(1)" class="text-primary-600 hover:text-primary-800">
+                            <i class="fas fa-arrow-left mr-2"></i> Back
+                        </button>
+                        <h2 class="text-2xl font-bold mt-2">Select Date & Time</h2>
+                    </div>
+                    <div id="selected-service" class="bg-gray-100 px-4 py-2 rounded-lg">
+                        <p class="font-medium">Service: <span id="service-name">Haircut</span></p>
+                        <p class="text-sm text-gray-600">Duration: <span id="service-duration">30 min</span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1">
+                        <div class="sticky top-4">
+                            <div id="datepicker" class="mb-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-semibold">Select a Date</h3>
+                                    <div class="flex space-x-2">
+                                        <button id="prev-week" class="p-1 rounded-full hover:bg-gray-100">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button id="next-week" class="p-1 rounded-full hover:bg-gray-100">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="date-list" class="space-y-2">
+                                    <!-- Dates will be populated by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="font-semibold mb-3">Need help?</h3>
+                                <p class="text-sm text-gray-600 mb-3">If you need assistance with your booking, please contact us.</p>
+                                <div class="space-y-2">
+                                    <a href="tel:{{ provider.phone }}" class="flex items-center text-gray-700 hover:text-primary-600">
+                                        <i class="fas fa-phone-alt w-5 mr-2"></i>
+                                        <span>{{ provider.phone|default:"+1 (555) 123-4567" }}</span>
+                                    </a>
+                                    <a href="mailto:{{ provider.email }}" class="flex items-center text-gray-700 hover:text-primary-600">
+                                        <i class="fas fa-envelope w-5 mr-2"></i>
+                                        <span>{{ provider.email|default:"contact@example.com" }}</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <div id="time-slots" class="bg-gray-50 p-6 rounded-xl">
+                            <h3 class="font-semibold mb-4">Available Time Slots</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" id="time-slot-container">
+                                <!-- Time slots will be populated by JavaScript -->
+                                <div class="time-slot">9:00 AM</div>
+                                <div class="time-slot">9:30 AM</div>
+                                <div class="time-slot booked">10:00 AM</div>
+                                <div class="time-slot">10:30 AM</div>
+                                <div class="time-slot">11:00 AM</div>
+                                <div class="time-slot">11:30 AM</div>
+                                <div class="time-slot">2:00 PM</div>
+                                <div class="time-slot">2:30 PM</div>
+                            </div>
+                            
+                            <div class="mt-8">
+                                <h3 class="font-semibold mb-3">Your Information</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                        <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                        <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                                        <textarea rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-between">
+                            <button onclick="prevStep(1)" class="text-gray-600 hover:text-gray-800 font-medium">
+                                <i class="fas fa-arrow-left mr-2"></i> Back
+                            </button>
+                            <button onclick="nextStep(2)" class="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors">
+                                Next: Confirm Booking
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Confirm Booking -->
+            <div id="step-3" class="booking-step hidden">
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-check text-green-600 text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-2">Confirm Your Appointment</h2>
+                        <p class="text-gray-600">Please review your appointment details before confirming</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">Appointment Details</h3>
+                                <div class="space-y-3">
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Service:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-service">Haircut</div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Date:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-date">Friday, November 24, 2023</div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Time:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-time">10:00 AM - 10:30 AM</div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Duration:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-duration">30 minutes</div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Price:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-price">$35.00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">Your Information</h3>
+                                <div class="space-y-3">
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Name:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-name">John Doe</div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Email:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-email">john@example.com</div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Phone:</div>
+                                        <div class="w-2/3 font-medium" id="confirm-phone">(555) 123-4567</div>
+                                    </div>
+                                    <div class="flex">
+                                        <div class="w-1/3 text-gray-500">Notes:</div>
+                                        <div class="w-2/3 font-medium text-gray-600" id="confirm-notes">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="terms" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="terms" class="ml-2 block text-sm text-gray-700">
+                                    I agree to the <a href="#" class="text-primary-600 hover:text-primary-800">Terms of Service</a> and 
+                                    <a href="#" class="text-primary-600 hover:text-primary-800">Privacy Policy</a>
+                                </label>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <span>You'll receive a confirmation email with your appointment details.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <button onclick="prevStep(2)" class="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-arrow-left mr-2"></i> Back
+                        </button>
+                        <button onclick="confirmBooking()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                            Confirm Booking
+                            <i class="fas fa-check ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Bookify</h3>
+                    <p class="text-gray-400">Professional booking solutions for businesses of all sizes.</p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-white">Services</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-4">Contact Us</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-2"></i>
+                            <span>123 Business St, City, Country</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone-alt mr-2"></i>
+                            <span>+1 (555) 123-4567</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2"></i>
+                            <span>info@bookify.com</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-4">Follow Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>&copy; 2023 Bookify. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Booking Confirmed!</h3>
+                <p class="text-gray-600 mb-6">Your appointment has been successfully scheduled.</p>
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 text-left">
+                    <p class="font-medium" id="success-date">Friday, November 24, 2023 at 10:00 AM</p>
+                    <p class="text-sm text-gray-600 mt-1">You'll receive a confirmation email shortly.</p>
+                </div>
+                <div class="flex flex-col space-y-3">
+                    <a href="#" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        View My Appointments
+                    </a>
+                    <button onclick="closeSuccessModal()" class="text-gray-600 hover:text-gray-800 font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Current step tracking
+        let currentStep = 1;
+        let selectedService = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        
+        // Sample services data (in a real app, this would come from your backend)
+        const services = [
+            { id: 1, name: 'Haircut', duration: '30', price: '35.00', description: 'Professional haircut and styling' },
+            { id: 2, name: 'Hair Color', duration: '90', price: '85.00', description: 'Full hair coloring service' },
+            { id: 3, name: 'Beard Trim', duration: '15', price: '15.00', description: 'Precision beard trimming' },
+            { id: 4, name: 'Hair Treatment', duration: '60', price: '65.00', description: 'Deep conditioning treatment' },
+            { id: 5, name: 'Kids Cut', duration: '30', price: '25.00', description: 'Haircut for children under 12' },
+            { id: 6, name: 'Senior Cut', duration: '30', price: '30.00', description: 'Haircut for seniors (65+)' }
+        ];
+
+        // Initialize the date picker
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDatePicker();
+            
+            // Populate services from Django template if available
+            const djangoServices = JSON.parse('{{ services_json|escapejs }}' || '[]');
+            if (djangoServices.length > 0) {
+                // Use Django-provided services
+                services.length = 0; // Clear the sample data
+                djangoServices.forEach(service => {
+                    services.push({
+                        id: service.id,
+                        name: service.service_name,
+                        duration: service.duration,
+                        price: service.price,
+                        description: service.description || ''
+                    });
+                });
+            }
+            
+            // Set up service selection
+            document.querySelectorAll('.service-card').forEach((card, index) => {
+                card.addEventListener('click', () => selectService(index));
+            });
+            
+            // Set up time slot selection
+            document.querySelectorAll('.time-slot:not(.booked)').forEach(slot => {
+                slot.addEventListener('click', () => {
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    slot.classList.add('selected');
+                    selectedTime = slot.textContent.trim();
+                    updateBookingSummary();
+                });
+            });
+            
+            // Navigation buttons
+            document.getElementById('prev-week').addEventListener('click', () => {
+                // Previous week logic
+                console.log('Previous week');
+            });
+            
+            document.getElementById('next-week').addEventListener('click', () => {
+                // Next week logic
+                console.log('Next week');
+            });
+        });
+        
+        function initializeDatePicker() {
+            const dateList = document.getElementById('date-list');
+            const today = new Date();
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            // Clear any existing dates
+            dateList.innerHTML = '';
+            
+            // Add next 7 days
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const day = date.getDate();
+                const dayName = days[date.getDay()];
+                const month = months[date.getMonth()];
+                const dateString = `${day} ${month}`;
+                const fullDate = date.toISOString().split('T')[0];
+                
+                const dateElement = document.createElement('div');
+                dateElement.className = `date-option p-3 rounded-lg text-center cursor-pointer ${i === 0 ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:bg-gray-100'}`;
+                dateElement.innerHTML = `
+                    <div class="text-sm">${dayName}</div>
+                    <div class="font-semibold">${dateString}</div>
+                `;
+                dateElement.dataset.date = fullDate;
+                
+                if (i === 0) {
+                    selectedDate = fullDate;
+                    dateElement.classList.add('selected');
+                }
+                
+                dateElement.addEventListener('click', function() {
+                    document.querySelectorAll('.date-option').forEach(el => {
+                        el.classList.remove('bg-primary-100', 'text-primary-700', 'font-medium');
+                        el.classList.add('hover:bg-gray-100');
+                    });
+                    this.classList.add('bg-primary-100', 'text-primary-700', 'font-medium');
+                    this.classList.remove('hover:bg-gray-100');
+                    selectedDate = this.dataset.date;
+                    // Here you would typically fetch available time slots for the selected date
+                    console.log('Selected date:', selectedDate);
+                });
+                
+                dateList.appendChild(dateElement);
+            }
+        }
+        
+        function selectService(index) {
+            // Remove selected class from all service cards
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            const selectedCard = document.querySelectorAll('.service-card')[index];
+            selectedCard.classList.add('selected');
+            
+            // Store selected service
+            selectedService = services[index];
+            
+            // Update service info in the time selection step
+            if (selectedService) {
+                document.getElementById('service-name').textContent = selectedService.name;
+                document.getElementById('service-duration').textContent = `${selectedService.duration} min`;
+            }
+            
+            // Update booking summary
+            updateBookingSummary();
+        }
+        
+        function nextStep(step) {
+            // Validate current step before proceeding
+            if (step === 1 && !selectedService) {
+                alert('Please select a service to continue');
+                return;
+            } else if (step === 2 && !selectedTime) {
+                alert('Please select a time slot to continue');
+                return;
+            } else if (step === 3) {
+                // Validate form inputs before final submission
+                const nameInput = document.querySelector('input[type="text"]');
+                const emailInput = document.querySelector('input[type="email"]');
+                const phoneInput = document.querySelector('input[type="tel"]');
+                const termsCheckbox = document.getElementById('terms');
+                
+                if (!nameInput.value || !emailInput.value || !phoneInput.value) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                if (!termsCheckbox.checked) {
+                    alert('Please accept the terms and conditions to continue');
+                    return;
+                }
+                
+                // Update confirmation details
+                document.getElementById('confirm-name').textContent = nameInput.value;
+                document.getElementById('confirm-email').textContent = emailInput.value;
+                document.getElementById('confirm-phone').textContent = phoneInput.value;
+                
+                const notesInput = document.querySelector('textarea');
+                document.getElementById('confirm-notes').textContent = notesInput.value || '-';
+            }
+            
+            // Hide current step
+            document.getElementById(`step-${currentStep}`).classList.add('hidden');
+            
+            // Update current step
+            currentStep = step + 1;
+            
+            // Show next step
+            document.getElementById(`step-${currentStep}`).classList.remove('hidden');
+            
+            // Update step indicator
+            updateStepIndicator(currentStep);
+            
+            // Scroll to top of the form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function prevStep(step) {
+            // Hide current step
+            document.getElementById(`step-${currentStep}`).classList.add('hidden');
+            
+            // Update current step
+            currentStep = step - 1;
+            
+            // Show previous step
+            document.getElementById(`step-${currentStep}`).classList.remove('hidden');
+            
+            // Update step indicator
+            updateStepIndicator(currentStep);
+            
+            // Scroll to top of the form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function updateStepIndicator(step) {
+            // Reset all steps
+            document.querySelectorAll('.step').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                if (index + 1 < step) {
+                    el.classList.add('completed');
+                } else if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+            
+            // Update progress bar
+            const progress = ((step - 1) / 3) * 100;
+            document.querySelector('.step-line-progress').style.width = `${progress}%`;
+        }
+        
+        function updateBookingSummary() {
+            if (selectedService) {
+                document.getElementById('confirm-service').textContent = selectedService.name;
+                document.getElementById('confirm-duration').textContent = `${selectedService.duration} minutes`;
+                document.getElementById('confirm-price').textContent = `$${parseFloat(selectedService.price).toFixed(2)}`;
+            }
+            
+            if (selectedDate) {
+                const date = new Date(selectedDate);
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('confirm-date').textContent = date.toLocaleDateString('en-US', options);
+                
+                // Format for success modal
+                const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+                const timeString = selectedTime ? ` at ${selectedTime}` : '';
+                document.getElementById('success-date').textContent = 
+                    `${date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${timeString}`;
+            }
+            
+            if (selectedTime) {
+                document.getElementById('confirm-time').textContent = selectedTime;
+                
+                // Calculate end time if we have duration
+                if (selectedService) {
+                    const [hours, period] = selectedTime.split(' ');
+                    let [h, m] = hours.split(':').map(Number);
+                    
+                    // Convert to 24-hour format for easier calculation
+                    if (period === 'PM' && h < 12) h += 12;
+                    if (period === 'AM' && h === 12) h = 0;
+                    
+                    // Add duration
+                    const duration = parseInt(selectedService.duration) || 0;
+                    const endTime = new Date();
+                    endTime.setHours(h, m + duration, 0, 0);
+                    
+                    // Format end time
+                    let endHours = endTime.getHours();
+                    const endPeriod = endHours >= 12 ? 'PM' : 'AM';
+                    endHours = endHours % 12 || 12;
+                    const endMinutes = endTime.getMinutes().toString().padStart(2, '0');
+                    const endTimeString = `${endHours}:${endMinutes} ${endPeriod}`;
+                    
+                    document.getElementById('confirm-time').textContent = 
+                        `${selectedTime} - ${endTimeString}`;
+                }
+            }
+        }
+        
+        function confirmBooking() {
+            // In a real app, you would submit the form data to your backend here
+            console.log('Booking confirmed:', {
+                service: selectedService,
+                date: selectedDate,
+                time: selectedTime,
+                name: document.querySelector('input[type="text"]').value,
+                email: document.querySelector('input[type="email"]').value,
+                phone: document.querySelector('input[type="tel"]').value,
+                notes: document.querySelector('textarea').value
+            });
+            
+            // Show success modal
+            document.getElementById('success-modal').classList.remove('hidden');
+            
+            // In a real app, you would redirect or show a success message
+            // window.location.href = '/booking/success';
+        }
+        
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('success-modal');
+            if (event.target === modal) {
+                closeSuccessModal();
+            }
+        };
+    </script>
+</body>
+</html>

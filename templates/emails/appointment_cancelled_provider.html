@@ -1,0 +1,52 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Appointment Cancelled - {{ appointment.client_name }}{% endblock %}
+
+{% block content %}
+<h2>Appointment Cancelled ❌</h2>
+
+<p>Hi {{ provider.business_name }},</p>
+
+<p>An appointment has been cancelled.</p>
+
+<div class="info-box">
+    <h3>📅 Cancelled Appointment</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Client:</span>
+        <span class="info-value">{{ appointment.client_name }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Phone:</span>
+        <span class="info-value">{{ appointment.client_phone }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Service:</span>
+        <span class="info-value">{{ service.service_name }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Date:</span>
+        <span class="info-value">{{ appointment.appointment_date|date:"l, F j, Y" }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Time:</span>
+        <span class="info-value">{{ appointment.appointment_time|time:"g:i A" }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Cancelled by:</span>
+        <span class="info-value">{{ cancelled_by|title }}</span>
+    </div>
+</div>
+
+<a href="{{ site_url }}/providers/dashboard/" class="btn">Go to Dashboard</a>
+
+<p>This time slot is now available for new bookings.</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

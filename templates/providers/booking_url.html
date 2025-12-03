@@ -1,0 +1,280 @@
+{% extends 'providers/base.html' %}
+
+{% block title %}Your Booking URL - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Your Booking URL</h1>
+            <p class="text-lg text-gray-600">Share this link with your clients to let them book appointments with you</p>
+        </div>
+
+        <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
+            <!-- Primary Booking URL Card -->
+            <div class="p-8 border-b border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="flex-1">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">Your Public Booking Page</h2>
+                        <p class="text-gray-600 mb-4">This is the main link you can share with your clients</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                            <div class="relative flex-1">
+                                <input 
+                                    type="text" 
+                                    id="booking-url" 
+                                    value="{{ request.scheme }}://{{ request.get_host }}{% url 'appointments:public_booking' provider_slug=provider.slug %}"
+                                    readonly 
+                                    class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                >
+                                <button 
+                                    onclick="copyToClipboard('booking-url')"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-primary-600"
+                                    title="Copy to clipboard"
+                                >
+                                    <i class="far fa-copy"></i>
+                                </button>
+                            </div>
+                            <a 
+                                href="{{ request.scheme }}://{{ request.get_host }}{% url 'appointments:public_booking' provider_slug=provider.slug %}" 
+                                target="_blank"
+                                class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                            >
+                                <i class="fas fa-external-link-alt mr-2"></i>
+                                View Page
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <div class="w-24 h-24 rounded-lg bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center">
+                            <i class="fas fa-calendar-alt text-4xl text-primary-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Embed Options -->
+            <div class="p-8 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Embed on Your Website</h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Option 1: Direct Link -->
+                    <div class="bg-gray-50 p-6 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-medium text-gray-900">Direct Link</h3>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-link mr-1"></i>
+                                Simple
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">Add a button or text link to your website</p>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Link Text</label>
+                                <input 
+                                    type="text" 
+                                    value="Book an Appointment" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">HTML Code</label>
+                                <div class="relative">
+                                    <pre class="bg-gray-800 text-green-300 p-3 rounded-md text-xs overflow-x-auto"><code>&lt;a href="{{ request.scheme }}://{{ request.get_host }}{% url 'appointments:public_booking' provider_slug=provider.slug %}"&gt;Book an Appointment&lt;/a&gt;</code></pre>
+                                    <button 
+                                        onclick="copyToClipboard('direct-link-code')"
+                                        class="absolute top-2 right-2 p-1 text-gray-400 hover:text-white"
+                                        title="Copy to clipboard"
+                                    >
+                                        <i class="far fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Option 2: Embed Widget -->
+                    <div class="bg-gray-50 p-6 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-medium text-gray-900">Embed Widget</h3>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-code mr-1"></i>
+                                Advanced
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">Embed a booking widget directly into your website</p>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Widget Size</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500">
+                                    <option>Medium (500px × 700px)</option>
+                                    <option>Large (800px × 1000px)</option>
+                                    <option>Full Width (100%)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Embed Code</label>
+                                <div class="relative">
+                                    <pre class="bg-gray-800 text-green-300 p-3 rounded-md text-xs overflow-x-auto"><code>&lt;div id="booking-widget"&gt;&lt;/div&gt;
+&lt;script src="{{ request.scheme }}://{{ request.get_host }}/static/js/booking-widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    window.BookingWidget.init({
+        provider: '{{ provider.slug }}',
+        container: 'booking-widget',
+        theme: 'light',
+        primaryColor: '#4f46e5'
+    });
+&lt;/script&gt;</code></pre>
+                                    <button 
+                                        onclick="copyToClipboard('widget-code')"
+                                        class="absolute top-2 right-2 p-1 text-gray-400 hover:text-white"
+                                        title="Copy to clipboard"
+                                    >
+                                        <i class="far fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sharing Options -->
+            <div class="p-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Share Your Booking Page</h2>
+                
+                <div class="flex flex-wrap gap-3">
+                    <a href="#" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fab fa-facebook-f text-blue-600 mr-2"></i>
+                        Facebook
+                    </a>
+                    <a href="#" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fab fa-twitter text-blue-400 mr-2"></i>
+                        Twitter
+                    </a>
+                    <a href="#" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fab fa-linkedin-in text-blue-700 mr-2"></i>
+                        LinkedIn
+                    </a>
+                    <a href="#" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fab fa-whatsapp text-green-500 mr-2"></i>
+                        WhatsApp
+                    </a>
+                    <a href="#" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-envelope text-gray-500 mr-2"></i>
+                        Email
+                    </a>
+                </div>
+                
+                <div class="mt-6">
+                    <label for="email-template" class="block text-sm font-medium text-gray-700 mb-2">Email Template</label>
+                    <div class="flex">
+                        <select id="email-template" class="flex-1 rounded-l-md border-r-0 border-gray-300 focus:ring-primary-500 focus:border-primary-500">
+                            <option>Simple Invitation</option>
+                            <option>Professional Booking</option>
+                            <option>Custom Message</option>
+                        </select>
+                        <button class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 bg-gray-50 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500">
+                            <i class="far fa-envelope-open-text mr-2"></i>
+                            Preview Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips & Best Practices -->
+        <div class="mt-12 bg-blue-50 rounded-xl p-6">
+            <h2 class="text-lg font-semibold text-blue-800 mb-4">
+                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                Tips for Getting More Bookings
+            </h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="flex">
+                    <div class="flex-shrink-0 mt-1">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-link"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-medium text-gray-900">Add to Your Email Signature</h3>
+                        <p class="text-sm text-gray-600">Include your booking link in your email signature for easy access.</p>
+                    </div>
+                </div>
+                <div class="flex">
+                    <div class="flex-shrink-0 mt-1">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-medium text-gray-900">Share on Social Media</h3>
+                        <p class="text-sm text-gray-600">Post your booking link on your social media profiles.</p>
+                    </div>
+                </div>
+                <div class="flex">
+                    <div class="flex-shrink-0 mt-1">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-medium text-gray-900">Track Your Bookings</h3>
+                        <p class="text-sm text-gray-600">Monitor your booking page performance in your dashboard.</p>
+                    </div>
+                </div>
+                <div class="flex">
+                    <div class="flex-shrink-0 mt-1">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-paint-brush"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-medium text-gray-900">Customize Your Page</h3>
+                        <p class="text-sm text-gray-600">Add your logo, colors, and services to match your brand.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast Notification (hidden by default) -->
+<div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 flex items-center">
+    <i class="fas fa-check-circle mr-2"></i>
+    <span>Link copied to clipboard!</span>
+</div>
+
+<script>
+    // Copy to clipboard function
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        const textToCopy = element.value || element.textContent;
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            // Show toast notification
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-x-full');
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+    
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any tooltips or other UI elements here
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

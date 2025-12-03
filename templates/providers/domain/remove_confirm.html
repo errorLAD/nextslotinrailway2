@@ -1,0 +1,36 @@
+{% extends 'providers/domain/base.html' %}
+
+{% block domain_title %}Remove Domain{% endblock %}
+
+{% block domain_content %}
+    <div class="alert alert-warning">
+        <h5><i class="bi bi-exclamation-triangle-fill"></i> Remove Custom Domain</h5>
+        <p class="mb-0">
+            Are you sure you want to remove the domain <strong>{{ provider.custom_domain }}</strong>?
+            This will make your booking page unavailable at this domain.
+        </p>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>What happens when you remove your domain:</h5>
+            <ul>
+                <li>Your booking page will no longer be accessible at this domain</li>
+                <li>You can always add it back later</li>
+                <li>Any existing appointments will remain in your system</li>
+            </ul>
+        </div>
+    </div>
+
+    <form method="post" action="{% url 'providers:remove_domain' %}">
+        {% csrf_token %}
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{% url 'providers:domain_settings' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Yes, Remove Domain
+            </button>
+        </div>
+    </form>
+{% endblock %}

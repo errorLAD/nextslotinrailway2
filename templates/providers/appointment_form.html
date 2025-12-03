@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} Appointment{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2 class="mb-1">
+            <i class="bi bi-calendar-plus"></i> 
+            {% if is_edit %}Edit Appointment{% else %}Create New Appointment{% endif %}
+        </h2>
+        <p class="text-muted mb-0">Manually add or edit appointment details</p>
+    </div>
+    
+    <!-- Form Card -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post" id="appointmentForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Service Selection -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Service *</label>
+                                {{ form.service }}
+                                {% if form.service.errors %}
+                                <div class="text-danger small">{{ form.service.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Client Name -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Client Name *</label>
+                                {{ form.client_name }}
+                                {% if form.client_name.errors %}
+                                <div class="text-danger small">{{ form.client_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Client Phone -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Client Phone *</label>
+                                {{ form.client_phone }}
+                                {% if form.client_phone.errors %}
+                                <div class="text-danger small">{{ form.client_phone.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Client Email -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Client Email (Optional)</label>
+                                {{ form.client_email }}
+                                {% if form.client_email.errors %}
+                                <div class="text-danger small">{{ form.client_email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Appointment Date -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Appointment Date *</label>
+                                {{ form.appointment_date }}
+                                {% if form.appointment_date.errors %}
+                                <div class="text-danger small">{{ form.appointment_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Appointment Time -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Appointment Time *</label>
+                                {{ form.appointment_time }}
+                                {% if form.appointment_time.errors %}
+                                <div class="text-danger small">{{ form.appointment_time.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Status -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                <div class="text-danger small">{{ form.status.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Payment Status -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Status</label>
+                                {{ form.payment_status }}
+                                {% if form.payment_status.errors %}
+                                <div class="text-danger small">{{ form.payment_status.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Payment Method -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Payment Method</label>
+                                {{ form.payment_method }}
+                                {% if form.payment_method.errors %}
+                                <div class="text-danger small">{{ form.payment_method.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Notes</label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <div class="text-danger small">{{ form.notes.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'providers:appointment_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-check-circle"></i> 
+                                {% if is_edit %}Update{% else %}Create{% endif %} Appointment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-info-circle"></i> Quick Tips</h5>
+                    
+                    <div class="mb-3">
+                        <h6 class="small fw-bold">Walk-in Appointments</h6>
+                        <p class="small text-muted mb-0">
+                            Use this form to manually add walk-in customers or appointments made via phone.
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="small fw-bold">Status Options</h6>
+                        <ul class="small text-muted mb-0">
+                            <li><strong>Pending:</strong> Awaiting confirmation</li>
+                            <li><strong>Confirmed:</strong> Appointment confirmed</li>
+                            <li><strong>Completed:</strong> Service completed</li>
+                            <li><strong>Cancelled:</strong> Appointment cancelled</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="small fw-bold">Payment Tracking</h6>
+                        <p class="small text-muted mb-0">
+                            Track payment status to manage your revenue. Mark as "Paid" after receiving payment.
+                        </p>
+                    </div>
+                    
+                    {% if not provider.has_pro_features %}
+                    <div class="alert alert-warning small">
+                        <strong>FREE Plan:</strong> You have {{ provider.remaining_appointments }} appointments remaining this month.
+                        <a href="{% url 'subscriptions:pricing' %}">Upgrade to PRO</a> for unlimited bookings.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

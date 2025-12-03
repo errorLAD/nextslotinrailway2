@@ -1,0 +1,153 @@
+{% extends "providers/domain/base.html" %}
+{% load static %}
+
+{% block domain_content %}
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Your Domain</h3>
+        <p class="mt-1 text-sm text-gray-500">
+            Manage your custom domain and subdomain settings.
+        </p>
+    </div>
+    
+    <div class="px-6 py-5">
+        {% if not is_pro %}
+            <!-- Pro feature notice -->
+            <div class="rounded-md bg-blue-50 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1 md:flex md:justify-between">
+                        <p class="text-sm text-blue-700">
+                            Custom domains are a <span class="font-medium">PRO feature</span>. Upgrade to PRO to use your own domain or subdomain.
+                        </p>
+                        <p class="mt-3 text-sm md:mt-0 md:ml-6">
+                            <a href="{% url 'subscriptions:pricing' %}" class="whitespace-nowrap font-medium text-blue-700 hover:text-blue-600">
+                                Upgrade to PRO <span aria-hidden="true">&rarr;</span>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if not provider.custom_domain %}
+            <!-- No domain configured -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <h3 class="mt-2 text-lg font-medium text-gray-900">No domain configured</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    Get started by adding a custom domain or subdomain.
+                </p>
+                <div class="mt-6">
+                    <a href="{% url 'providers:add_custom_domain' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Add Domain
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- Domain is configured -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-lg font-medium text-gray-900">{{ provider.custom_domain }}</h4>
+                        <div class="mt-1">
+                            {% if provider.domain_verified %}
+                                <span class="status-verified">
+                                    <svg class="inline-block h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="status-pending">
+                                    <svg class="inline-block h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                    </svg>
+                                    Pending Verification
+                                </span>
+                            {% endif %}
+                            <span class="ml-3 text-sm text-gray-500">
+                                {{ provider.get_custom_domain_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="space-x-3">
+                        {% if not provider.domain_verified %}
+                            <a href="{% url 'providers:domain_verification' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Verify Domain
+                            </a>
+                        {% endif %}
+                        <form action="{% url 'providers:remove_domain' %}" method="post" class="inline-block" onsubmit="return confirm('Are you sure you want to remove this domain?');">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                {% if provider.domain_verified %}
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="text-sm font-medium text-gray-900">Your website is live at:</h4>
+                        <div class="mt-1">
+                            <a href="{{ provider.get_primary_url }}" target="_blank" class="text-indigo-600 hover:text-indigo-500">
+                                {{ provider.get_primary_url }}
+                            </a>
+                        </div>
+                        
+                        <div class="mt-4 flex items-center text-sm text-gray-500">
+                            <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>SSL is {% if provider.ssl_enabled %}enabled{% else %}pending{% endif %}</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if not provider.domain_verified %}
+                <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                Your domain is not yet verified. Please complete the verification process to activate it.
+                                <a href="{% url 'providers:domain_verification' %}" class="font-medium text-yellow-700 underline hover:text-yellow-600">
+                                    Verify now
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+    
+    {% if not is_pro %}
+        <!-- Upgrade to PRO CTA -->
+        <div class="border-t border-gray-200 px-6 py-4 bg-blue-50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-900">Upgrade to PRO for custom domains</h4>
+                    <p class="mt-1 text-sm text-gray-500">Get your own custom domain and other premium features.</p>
+                </div>
+                <div class="ml-4">
+                    <a href="{% url 'subscriptions:upgrade' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Upgrade to PRO
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_name }}{% endblock %}</title>
+    <style>
+        /* Reset styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .logo {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        /* Body */
+        .email-body {
+            padding: 40px 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        
+        .email-body h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .email-body p {
+            margin: 15px 0;
+            font-size: 16px;
+        }
+        
+        /* Info box */
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        
+        .info-box h3 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        /* Upgrade prompt (FREE plan) */
+        .upgrade-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .upgrade-box h3 {
+            margin-top: 0;
+            color: #2d3436;
+        }
+        
+        .upgrade-box p {
+            color: #2d3436;
+            margin: 10px 0;
+        }
+        
+        .btn-upgrade {
+            background: #2d3436;
+            color: #ffffff !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            text-align: center;
+            color: #666666;
+            font-size: 14px;
+        }
+        
+        .email-footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .email-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 30px 20px;
+            }
+            
+            .email-header h1 {
+                font-size: 24px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+            }
+            
+            .info-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="logo">📅</div>
+            <h1>{{ site_name }}</h1>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p>
+                <strong>{{ site_name }}</strong><br>
+                Your trusted appointment booking platform
+            </p>
+            
+            <div class="social-links">
+                <a href="{{ site_url }}">Visit Website</a> |
+                <a href="{{ site_url }}/contact">Contact Us</a> |
+                <a href="{{ site_url }}/help">Help Center</a>
+            </div>
+            
+            <p style="font-size: 12px; color: #999;">
+                You're receiving this email because you have an account with {{ site_name }}.<br>
+                <a href="{{ site_url }}/unsubscribe">Unsubscribe</a> from these emails.
+            </p>
+            
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                © {% now "Y" %} {{ site_name }}. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

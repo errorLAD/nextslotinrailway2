@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointment #{{ appointment.id }} - {{ appointment.service_provider.business_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'providers:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'providers:appointment_list' %}">Appointments</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">#{{ appointment.id }}</li>
+                </ol>
+            </nav>
+            <h2 class="mb-0">Appointment Details</h2>
+            <p class="text-muted mb-0">ID: #{{ appointment.id|stringformat:"06d" }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'providers:appointment_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+            <a href="{% url 'providers:edit_appointment' appointment.id %}" class="btn btn-primary">
+                <i class="bi bi-pencil-square me-1"></i> Edit
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h5 class="card-title mb-1">
+                                {{ appointment.service.service_name }}
+                                <span class="badge bg-{{ appointment.status|lower }}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </h5>
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-calendar-date me-1"></i>
+                                {{ appointment.appointment_date|date:"l, F j, Y" }}
+                            </p>
+                            <p class="text-muted">
+                                <i class="bi bi-clock me-1"></i>
+                                {{ appointment.appointment_time|time:"g:i A" }}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <div class="h4 mb-0">${{ appointment.total_price|floatformat:2 }}</div>
+                            <small class="text-muted">Total Amount</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase text-muted mb-3">Client Information</h6>
+                            <p class="mb-1">
+                                <strong>Name:</strong> {{ appointment.client_name }}
+                                {% if appointment.client %}
+                                    <span class="badge bg-info">Registered User</span>
+                                {% endif %}
+                            </p>
+                            {% if appointment.client_phone %}
+                            <p class="mb-1">
+                                <strong>Phone:</strong> 
+                                <a href="tel:{{ appointment.client_phone }}">{{ appointment.client_phone }}</a>
+                            </p>
+                            {% endif %}
+                            {% if appointment.client_email %}
+                            <p class="mb-1">
+                                <strong>Email:</strong> 
+                                <a href="mailto:{{ appointment.client_email }}">{{ appointment.client_email }}</a>
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase text-muted mb-3">Service Details</h6>
+                            <p class="mb-1">
+                                <strong>Duration:</strong> {{ appointment.service.duration }} minutes
+                            </p>
+                            <p class="mb-1">
+                                <strong>Price:</strong> ${{ appointment.service.price|floatformat:2 }}
+                            </p>
+                            {% if appointment.service.description %}
+                            <p class="mb-1">
+                                <strong>Description:</strong> {{ appointment.service.description }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if appointment.notes %}
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted mb-2">Notes</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {{ appointment.notes|linebreaksbr }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <div class="text-muted small">
+                            Created: {{ appointment.created_at|timesince }} ago
+                            {% if appointment.updated_at != appointment.created_at %}
+                                <br>Updated: {{ appointment.updated_at|timesince }} ago
+                            {% endif %}
+                        </div>
+                        <div class="btn-group">
+                            {% if appointment.status == 'pending' %}
+                                <a href="{% url 'providers:confirm_appointment' appointment.id %}" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i> Confirm
+                                </a>
+                            {% endif %}
+                            {% if appointment.status != 'cancelled' %}
+                                <a href="{% url 'providers:cancel_appointment' appointment.id %}" class="btn btn-outline-danger">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Status Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Appointment Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="avatar avatar-lg">
+                                <span class="avatar-title rounded-circle bg-soft-{{ appointment.status|lower }} text-{{ appointment.status|lower }}">
+                                    <i class="bi bi-calendar-check"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-0">{{ appointment.get_status_display }}</h5>
+                            <p class="text-muted mb-0">Current Status</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mb-3" style="height: 8px;">
+                        {% if appointment.status == 'completed' %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                        {% elif appointment.status == 'cancelled' %}
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: 100%"></div>
+                        {% elif appointment.status == 'confirmed' %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                        {% else %}
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 25%"></div>
+                        {% endif %}
+                    </div>
+                    
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            <span class="{% if appointment.status == 'pending' %}text-muted{% endif %}">
+                                Appointment Requested
+                            </span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi {% if appointment.status in 'confirmed,completed' %}bi-check-circle-fill text-success{% else %}bi-circle{% endif %} me-2"></i>
+                            <span class="{% if appointment.status == 'pending' %}text-muted{% endif %}">
+                                Confirmed
+                            </span>
+                        </li>
+                        <li>
+                            <i class="bi {% if appointment.status == 'completed' %}bi-check-circle-fill text-success{% else %}bi-circle{% endif %} me-2"></i>
+                            <span class="{% if appointment.status != 'completed' %}text-muted{% endif %}">
+                                Completed
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="tel:{{ appointment.client_phone }}" class="btn btn-outline-primary">
+                            <i class="bi bi-telephone me-2"></i> Call Client
+                        </a>
+                        {% if appointment.client_email %}
+                        <a href="mailto:{{ appointment.client_email }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-envelope me-2"></i> Email Client
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'providers:edit_appointment' appointment.id %}" class="btn btn-outline-info">
+                            <i class="bi bi-pencil-square me-2"></i> Edit Details
+                        </a>
+                        {% if appointment.status != 'cancelled' %}
+                        <a href="{% url 'providers:cancel_appointment' appointment.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-x-circle me-2"></i> Cancel Appointment
+                        </a>
+                        {% endif %}
+                        {% if appointment.status == 'completed' %}
+                        <a href="#" class="btn btn-outline-success">
+                            <i class="bi bi-receipt me-2"></i> Generate Invoice
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client History -->
+            {% if client_appointments.count > 1 %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Client History</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">This client has {{ client_appointments.count|add:"-1" }} previous appointment(s).</p>
+                    <ul class="list-group list-group-flush">
+                        {% for apt in client_appointments|slice:":5" %}
+                            {% if apt.id != appointment.id %}
+                            <li class="list-group-item px-0">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">{{ apt.service.service_name }}</h6>
+                                        <small class="text-muted">
+                                            {{ apt.appointment_date|date:"M j, Y" }} at {{ apt.appointment_time|time:"g:i A" }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-{{ apt.status|lower }}">{{ apt.get_status_display }}</span>
+                                </div>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% if client_appointments.count > 5 %}
+                    <div class="text-center mt-2">
+                        <a href="#" class="btn btn-sm btn-link">View All</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any client-side functionality here
+    
+    // Example: Confirm before cancelling
+    const cancelButtons = document.querySelectorAll('a[href*="cancel"]');
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to cancel this appointment?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,352 @@
+{% extends 'providers/domain/base.html' %}
+
+{% block domain_title %}Verify Domain Ownership{% endblock %}
+
+{% block domain_content %}
+    <!-- Provider's Unique Booking URL Info -->
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Your Unique Booking Page</h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-2"><strong>Your Business:</strong> {{ provider.business_name }}</p>
+            <p class="mb-2"><strong>Your Unique Booking Slug:</strong> <code>{{ provider.unique_booking_url }}</code></p>
+            <div class="alert alert-light border mb-0">
+                <strong>Default Booking URL:</strong><br>
+                <code id="defaultBookingUrl">https://{{ default_domain }}/book/{{ provider.unique_booking_url }}/</code>
+                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('defaultBookingUrl')">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% if not provider.domain_verified %}
+        <div class="alert alert-warning">
+            <h5><i class="bi bi-shield-exclamation"></i> Verify Domain Ownership</h5>
+            <p class="mb-0">
+                To complete the setup of <strong>{{ provider.custom_domain }}</strong> for your booking page, add the DNS records below.
+            </p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> DNS Configuration for: {{ provider.custom_domain }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <strong>How it works:</strong> When customers visit <code>{{ provider.custom_domain }}</code>, 
+                    they will see YOUR booking page (<code>{{ provider.unique_booking_url }}</code>), not anyone else's.
+                </div>
+
+                <p>Add these records at your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.):</p>
+                
+                <!-- CNAME Record -->
+                <div class="card mb-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-1-circle-fill"></i> CNAME Record (Required - Points to Our Server)</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">This tells the internet to send visitors to our server:</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Host / Name</th>
+                                        <th>Points To / Target</th>
+                                        <th>TTL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="table-warning">
+                                        <td><code class="bg-success text-white p-1">CNAME</code></td>
+                                        <td>
+                                            <code class="bg-light p-1" id="cnameHost">{% if '.' in provider.custom_domain %}{{ provider.custom_domain.split.0 }}{% else %}@{% endif %}</code>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1" onclick="copyToClipboard('cnameHost')">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                            <br><small class="text-muted">(the subdomain part before your main domain)</small>
+                                        </td>
+                                        <td>
+                                            <code class="bg-warning text-dark p-2 fs-6" id="cnameValue">{{ default_domain }}</code>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1" onclick="copyToClipboard('cnameValue')">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </td>
+                                        <td><code>3600</code> or Auto</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TXT Record -->
+                <div class="card mb-4 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-2-circle-fill"></i> TXT Record (Required - Proves You Own This Domain)</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">This unique code proves you own the domain (it's specific to your account):</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Host / Name</th>
+                                        <th>Value (Your Unique Verification Code)</th>
+                                        <th>TTL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="table-info">
+                                        <td><code class="bg-info text-white p-1">TXT</code></td>
+                                        <td>
+                                            <code class="bg-light p-1">_booking-verify</code>
+                                            <br><small class="text-muted">or <code>@</code> if underscore not allowed</small>
+                                        </td>
+                                        <td>
+                                            <code class="bg-warning text-dark p-2 fs-6" id="txtValue">{{ provider.domain_verification_code }}</code>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1" onclick="copyToClipboard('txtValue')">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                            <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> This code is unique to YOUR account!</small>
+                                        </td>
+                                        <td><code>3600</code> or Auto</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example for this provider -->
+                <div class="card mb-4 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-lightbulb-fill"></i> Example for Your Domain: {{ provider.custom_domain }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>If your custom domain is <code>{{ provider.custom_domain }}</code>, here's exactly what to enter:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-success"><i class="bi bi-check-circle"></i> CNAME Record:</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Type:</strong> CNAME</li>
+                                            <li><strong>Host:</strong> <code>{{ provider.custom_domain|cut:default_domain|cut:"." }}</code></li>
+                                            <li><strong>Value:</strong> <code>{{ default_domain }}</code></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-info"><i class="bi bi-check-circle"></i> TXT Record:</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Type:</strong> TXT</li>
+                                            <li><strong>Host:</strong> <code>_booking-verify</code></li>
+                                            <li><strong>Value:</strong> <code>{{ provider.domain_verification_code }}</code></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DNS Propagation Notice -->
+                <div class="alert alert-secondary">
+                    <i class="bi bi-clock-history"></i>
+                    <strong>Note:</strong> DNS changes can take 5 minutes to 48 hours to propagate. 
+                    If verification fails, wait a few minutes and try again.
+                </div>
+
+                <div class="d-flex gap-2 mt-3 flex-wrap">
+                    <form method="post" action="{% url 'providers:verify_domain' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-shield-check"></i> Verify My Domain
+                        </button>
+                    </form>
+                    <a href="{% url 'providers:domain_settings' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Back to Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- DNS Provider Guides -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-question-circle"></i> Step-by-Step Guides by Provider</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="dnsGuides">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#godaddyGuide">
+                                <strong>GoDaddy</strong>
+                            </button>
+                        </h2>
+                        <div id="godaddyGuide" class="accordion-collapse collapse" data-bs-parent="#dnsGuides">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Login to <a href="https://godaddy.com" target="_blank">GoDaddy</a></li>
+                                    <li>Go to <strong>My Products</strong> → <strong>DNS</strong></li>
+                                    <li>Click <strong>"Add Record"</strong></li>
+                                    <li>For CNAME: Type=CNAME, Host=<code>book</code>, Points to=<code>{{ default_domain }}</code></li>
+                                    <li>For TXT: Type=TXT, Host=<code>_booking-verify</code>, Value=<code>{{ provider.domain_verification_code }}</code></li>
+                                    <li>Click <strong>Save</strong></li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cloudflareGuide">
+                                <strong>Cloudflare</strong>
+                            </button>
+                        </h2>
+                        <div id="cloudflareGuide" class="accordion-collapse collapse" data-bs-parent="#dnsGuides">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Login to <a href="https://cloudflare.com" target="_blank">Cloudflare</a></li>
+                                    <li>Select your domain</li>
+                                    <li>Go to <strong>DNS</strong> tab</li>
+                                    <li>Click <strong>"Add Record"</strong></li>
+                                    <li>For CNAME: Type=CNAME, Name=<code>book</code>, Target=<code>{{ default_domain }}</code>, Proxy=OFF (grey cloud)</li>
+                                    <li>For TXT: Type=TXT, Name=<code>_booking-verify</code>, Content=<code>{{ provider.domain_verification_code }}</code></li>
+                                    <li>Click <strong>Save</strong></li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#namecheapGuide">
+                                <strong>Namecheap</strong>
+                            </button>
+                        </h2>
+                        <div id="namecheapGuide" class="accordion-collapse collapse" data-bs-parent="#dnsGuides">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Login to <a href="https://namecheap.com" target="_blank">Namecheap</a></li>
+                                    <li>Go to <strong>Domain List</strong> → Click <strong>Manage</strong></li>
+                                    <li>Go to <strong>Advanced DNS</strong></li>
+                                    <li>Click <strong>"Add New Record"</strong></li>
+                                    <li>For CNAME: Type=CNAME, Host=<code>book</code>, Value=<code>{{ default_domain }}</code></li>
+                                    <li>For TXT: Type=TXT, Host=<code>_booking-verify</code>, Value=<code>{{ provider.domain_verification_code }}</code></li>
+                                    <li>Click the checkmark to save</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hostingerGuide">
+                                <strong>Hostinger</strong>
+                            </button>
+                        </h2>
+                        <div id="hostingerGuide" class="accordion-collapse collapse" data-bs-parent="#dnsGuides">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Login to <a href="https://hostinger.com" target="_blank">Hostinger</a></li>
+                                    <li>Go to <strong>Domains</strong> → Select your domain</li>
+                                    <li>Click <strong>DNS / Nameservers</strong></li>
+                                    <li>Click <strong>"Add Record"</strong></li>
+                                    <li>For CNAME: Type=CNAME, Name=<code>book</code>, Target=<code>{{ default_domain }}</code></li>
+                                    <li>For TXT: Type=TXT, Name=<code>_booking-verify</code>, TXT Value=<code>{{ provider.domain_verification_code }}</code></li>
+                                    <li>Click <strong>Add Record</strong></li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <!-- Domain Already Verified -->
+        <div class="alert alert-success">
+            <h5><i class="bi bi-check-circle-fill"></i> Domain Verified Successfully!</h5>
+            <p class="mb-0">
+                Your domain <strong>{{ provider.custom_domain }}</strong> is now linked to your booking page.
+            </p>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Your Custom Booking URLs</h5>
+            </div>
+            <div class="card-body">
+                <h6>Custom Domain URL (Share this with customers!):</h6>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">
+                        {% if provider.ssl_enabled %}
+                            <i class="bi bi-lock-fill text-success"></i>
+                        {% endif %}
+                    </span>
+                    <input type="text" class="form-control form-control-lg" 
+                           value="{% if provider.ssl_enabled %}https{% else %}http{% endif %}://{{ provider.custom_domain }}" 
+                           readonly id="verifiedUrl">
+                    <button class="btn btn-primary" type="button" onclick="copyToClipboard('verifiedUrl')">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                
+                <h6>Default URL (also works):</h6>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" 
+                           value="https://{{ default_domain }}/book/{{ provider.unique_booking_url }}/" 
+                           readonly id="defaultUrl">
+                    <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('defaultUrl')">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Both URLs will show YOUR booking page for <strong>{{ provider.business_name }}</strong>.
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% if provider.ssl_enabled %}https{% else %}http{% endif %}://{{ provider.custom_domain }}" 
+               class="btn btn-primary btn-lg" target="_blank">
+                <i class="bi bi-box-arrow-up-right"></i> Visit Your Booking Page
+            </a>
+            <a href="{% url 'providers:domain_settings' %}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-arrow-left"></i> Back to Domain Settings
+            </a>
+        </div>
+    {% endif %}
+
+    <script>
+    function copyToClipboard(elementId) {
+        var element = document.getElementById(elementId);
+        var text = element.value || element.textContent;
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = element.nextElementSibling;
+            if (btn && btn.tagName === 'BUTTON') {
+                var originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-outline-secondary', 'btn-outline-primary', 'btn-primary');
+                
+                setTimeout(function() {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('btn-success');
+                    if (originalHtml.includes('Copy')) {
+                        btn.classList.add('btn-outline-secondary');
+                    }
+                }, 2000);
+            }
+        });
+    }
+    </script>
+{% endblock %}

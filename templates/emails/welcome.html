@@ -1,0 +1,56 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Welcome to {{ site_name }}!{% endblock %}
+
+{% block content %}
+<h2>Welcome to {{ site_name }}! 🎉</h2>
+
+<p>Hi {{ user.get_short_name }},</p>
+
+<p>Thank you for joining {{ site_name }}! We're excited to have you on board.</p>
+
+{% if user.is_provider %}
+    <p>As a <strong>Service Provider</strong>, you can now:</p>
+    <ul>
+        <li>✅ Create and manage your services</li>
+        <li>✅ Accept appointment bookings</li>
+        <li>✅ Track your business analytics</li>
+        <li>✅ Manage your availability</li>
+    </ul>
+    
+    <div class="info-box">
+        <h3>🎁 You're on the FREE Plan</h3>
+        <p>Your account includes:</p>
+        <ul>
+            <li>Up to 5 appointments per month</li>
+            <li>Up to 3 services</li>
+            <li>Email notifications</li>
+            <li>Basic analytics</li>
+        </ul>
+    </div>
+    
+    <a href="{{ site_url }}/providers/dashboard/" class="btn">Go to Dashboard</a>
+    
+    <!-- Upgrade prompt for FREE plan -->
+    <div class="upgrade-box">
+        <h3>🚀 Upgrade to PRO for More Features!</h3>
+        <p>Get unlimited appointments, SMS notifications, advanced analytics, and more.</p>
+        <a href="{{ site_url }}/subscriptions/upgrade/" class="btn-upgrade">Upgrade to PRO - ₹199/month</a>
+    </div>
+{% else %}
+    <p>As a <strong>Client</strong>, you can now:</p>
+    <ul>
+        <li>🔍 Browse and discover service providers</li>
+        <li>📅 Book appointments instantly</li>
+        <li>📧 Receive email confirmations and reminders</li>
+        <li>📱 Manage your bookings</li>
+    </ul>
+    
+    <a href="{{ site_url }}/providers/browse/" class="btn">Browse Services</a>
+{% endif %}
+
+<p>If you have any questions, feel free to reach out to our support team.</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

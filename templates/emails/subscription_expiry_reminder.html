@@ -1,0 +1,58 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Your PRO Plan Expires Soon{% endblock %}
+
+{% block content %}
+<h2>⚠️ Your PRO Plan Expires in {{ days_remaining }} Days</h2>
+
+<p>Hi {{ provider.business_name }},</p>
+
+<p>This is a reminder that your PRO plan subscription is expiring soon.</p>
+
+<div class="info-box" style="background-color: #fff3cd; border-left-color: #ffc107;">
+    <h3>📅 Subscription Details</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Current Plan:</span>
+        <span class="info-value">PRO Plan</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Expiry Date:</span>
+        <span class="info-value"><strong>{{ plan_end_date|date:"F j, Y" }}</strong></span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Days Remaining:</span>
+        <span class="info-value"><strong>{{ days_remaining }} days</strong></span>
+    </div>
+</div>
+
+<div class="info-box">
+    <h3>🚀 PRO Plan Benefits</h3>
+    <ul>
+        <li>✅ Unlimited appointments</li>
+        <li>✅ Unlimited services</li>
+        <li>✅ SMS notifications (Twilio)</li>
+        <li>✅ Advanced analytics & reports</li>
+        <li>✅ Priority support</li>
+        <li>✅ Custom branding</li>
+    </ul>
+</div>
+
+<a href="{{ site_url }}/subscriptions/renew/" class="btn">Renew PRO Plan - ₹199/month</a>
+
+<p><strong>What happens if you don't renew?</strong></p>
+<ul>
+    <li>Your account will be downgraded to the FREE plan</li>
+    <li>Appointment limit: 5 per month</li>
+    <li>Service limit: 3 services</li>
+    <li>No SMS notifications</li>
+    <li>Basic analytics only</li>
+</ul>
+
+<p>Don't lose access to your PRO features! Renew today to continue enjoying unlimited appointments and advanced features.</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

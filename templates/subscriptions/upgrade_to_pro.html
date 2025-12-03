@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upgrade to Pro - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<!-- Tailwind CSS -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<style>
+    .pricing-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .feature-list li {
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .feature-list li svg {
+        flex-shrink: 0;
+        margin-right: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    
+    .popular-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background-color: #4f46e5;
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+                Choose Your Plan
+            </h1>
+            <p class="mt-5 max-w-xl mx-auto text-xl text-gray-500">
+                Upgrade to unlock powerful features and grow your business
+            </p>
+        </div>
+
+        <!-- Pricing Toggle -->
+        <div class="flex justify-center mb-12">
+            <div class="inline-flex items-center bg-white rounded-full p-1 border border-gray-200 shadow-sm">
+                <button type="button" id="monthly-toggle" class="px-6 py-2 rounded-full font-medium text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 bg-primary-600 text-white">
+                    Monthly Billing
+                </button>
+                <button type="button" id="yearly-toggle" class="px-6 py-2 rounded-full font-medium text-sm text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Yearly Billing (Save 20%)
+                </button>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <!-- Free Plan -->
+            <div class="pricing-card bg-white rounded-2xl p-8 relative overflow-hidden">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900">Free</h3>
+                    <p class="mt-2 text-gray-600">Perfect for getting started</p>
+                    <div class="mt-4 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-gray-900">₹0</span>
+                        <span class="text-lg font-medium text-gray-500">/month</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Billed monthly</p>
+                </div>
+                
+                <div class="mb-8">
+                    <ul class="feature-list">
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>5 appointments/month</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Up to 3 services</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Basic booking page</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Email notifications</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <button class="w-full bg-gray-100 text-gray-700 font-medium py-3 px-6 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors">
+                    Your Current Plan
+                </button>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="pricing-card bg-white rounded-2xl p-8 relative overflow-hidden border-2 border-primary-500">
+                <div class="popular-badge">Most Popular</div>
+                
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900">Pro</h3>
+                    <p class="mt-2 text-gray-600">Perfect for growing businesses</p>
+                    <div class="mt-4 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-gray-900">₹199</span>
+                        <span class="text-lg font-medium text-gray-500">/month</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Billed monthly. Cancel anytime.</p>
+                </div>
+                
+                <div class="mb-8">
+                    <ul class="feature-list">
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>100 appointments/month</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Unlimited services</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Customizable booking page</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Email, SMS & WhatsApp notifications</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Google Calendar sync</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Advanced analytics</span>
+                        </li>
+                        <li>
+                            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Priority support</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <form action="{% url 'subscriptions:create_payment_order' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="plan_id" value="{{ pro_plan.id }}">
+                    <button type="submit" class="w-full bg-primary-600 text-white font-medium py-3 px-6 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+                        Upgrade to Pro
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="mt-20 max-w-3xl mx-auto">
+            <h2 class="text-2xl font-bold text-center text-gray-900 mb-8">Frequently Asked Questions</h2>
+            
+            <div class="space-y-4">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <button class="flex items-center justify-between w-full text-left">
+                        <span class="font-medium text-gray-900">Can I change plans later?</span>
+                        <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="mt-2 text-gray-600">
+                        <p>Yes, you can upgrade or downgrade your plan at any time. Changes will take effect at the start of your next billing cycle.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <button class="flex items-center justify-between w-full text-left">
+                        <span class="font-medium text-gray-900">What payment methods do you accept?</span>
+                        <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="mt-2 text-gray-600">
+                        <p>We accept all major credit cards, including Visa, Mastercard, and American Express. We also support payments through UPI and net banking.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <button class="flex items-center justify-between w-full text-left">
+                        <span class="font-medium text-gray-900">Is there a free trial for the Pro plan?</span>
+                        <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="mt-2 text-gray-600">
+                        <p>Yes! You can try the Pro plan free for 14 days. No credit card required. You can cancel anytime during the trial period with no obligation.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <button class="flex items-center justify-between w-full text-left">
+                        <span class="font-medium text-gray-900">How do I cancel my subscription?</span>
+                        <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="mt-2 text-gray-600">
+                        <p>You can cancel your subscription at any time from your account settings. After cancellation, you'll continue to have access to Pro features until the end of your current billing period.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-10 text-center">
+                <p class="text-gray-600">Still have questions? <a href="mailto:support@bookingsaas.com" class="text-primary-600 hover:text-primary-700 font-medium">Contact our support team</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle between monthly and yearly billing
+    const monthlyToggle = document.getElementById('monthly-toggle');
+    const yearlyToggle = document.getElementById('yearly-toggle');
+    
+    if (monthlyToggle && yearlyToggle) {
+        monthlyToggle.addEventListener('click', function() {
+            monthlyToggle.classList.add('bg-primary-600', 'text-white');
+            monthlyToggle.classList.remove('text-gray-700', 'hover:text-gray-900');
+            yearlyToggle.classList.remove('bg-primary-600', 'text-white');
+            yearlyToggle.classList.add('text-gray-700', 'hover:text-gray-900');
+            // Update pricing for monthly
+            document.querySelectorAll('.monthly-price').forEach(el => el.classList.remove('hidden'));
+            document.querySelectorAll('.yearly-price').forEach(el => el.classList.add('hidden'));
+        });
+        
+        yearlyToggle.addEventListener('click', function() {
+            yearlyToggle.classList.add('bg-primary-600', 'text-white');
+            yearlyToggle.classList.remove('text-gray-700', 'hover:text-gray-900');
+            monthlyToggle.classList.remove('bg-primary-600', 'text-white');
+            monthlyToggle.classList.add('text-gray-700', 'hover:text-gray-900');
+            // Update pricing for yearly (20% off)
+            document.querySelectorAll('.monthly-price').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.yearly-price').forEach(el => el.classList.remove('hidden'));
+        });
+    }
+    
+    // Toggle FAQ items
+    const faqButtons = document.querySelectorAll('.bg-white button');
+    faqButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const content = this.nextElementSibling;
+            const isExpanded = content.style.maxHeight;
+            
+            // Close all other items
+            document.querySelectorAll('.bg-white button').forEach(btn => {
+                if (btn !== this) {
+                    btn.nextElementSibling.style.maxHeight = null;
+                    btn.querySelector('svg').classList.remove('rotate-180');
+                }
+            });
+            
+            // Toggle current item
+            if (isExpanded) {
+                content.style.maxHeight = null;
+                this.querySelector('svg').classList.remove('rotate-180');
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                this.querySelector('svg').classList.add('rotate-180');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

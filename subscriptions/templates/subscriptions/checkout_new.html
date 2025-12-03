@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - {{ plan.name }} Plan</title>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            line-height: 1.5;
+            padding: 20px;
+        }
+        
+        a {
+            color: #4f46e5;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: #f9fafb;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            color: #111827;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        
+        p {
+            margin-bottom: 15px;
+            color: #4b5563;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        
+        /* Layout Utilities */
+        .flex {
+            display: flex;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .mt-1 { margin-top: 4px; }
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .mt-5 { margin-top: 20px; }
+        .mt-6 { margin-top: 24px; }
+        
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-5 { margin-bottom: 20px; }
+        
+        .p-4 { padding: 16px; }
+        .py-4 { padding: 16px 0; }
+        .px-4 { padding: 0 16px; }
+        
+        .rounded { border-radius: 6px; }
+        .border { border: 1px solid #e5e7eb; }
+        
+        .bg-gray-50 { background-color: #f9fafb; }
+        .text-sm { font-size: 14px; }
+        .text-base { font-size: 16px; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-700 { color: #374151; }
+        .text-gray-900 { color: #111827; }
+        
+        /* Feature List */
+        .feature-list {
+            margin: 20px 0;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .feature-icon {
+            color: #10b981;
+            margin-right: 12px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        /* Responsive Layout */
+        .checkout-layout {
+            display: block;
+        }
+        
+        @media (min-width: 768px) {
+            .checkout-layout {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 30px;
+            }
+        }
+        
+        .payment-summary {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 30px;
+        }
+        
+        .border-t {
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .pt-4 {
+            padding-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>Complete Your Subscription</h1>
+                <p class="text-gray-500">You're subscribing to the {{ plan.name }} plan.</p>
+            </div>
+            
+            <div class="card-body">
+                <div class="checkout-layout">
+                    <div class="checkout-main">
+                        <h2>Order Summary</h2>
+                        
+                        <!-- Plan Details -->
+                        <div class="bg-gray-50 p-4 rounded">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3>{{ plan.name }} Plan</h3>
+                                    <p class="text-gray-500">Billed monthly - ₹{{ plan.price_monthly|floatformat:2 }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold">₹{{ plan.price_monthly|floatformat:2 }}<span class="text-base font-normal text-gray-500">/month</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <h4 class="font-medium text-gray-900 mb-3">Features included:</h4>
+                                <ul class="feature-list">
+                                    {% if plan.plan_type == 'free' %}
+                                        <li class="feature-item">
+                                            <svg class="feature-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>Up to 5 appointments per month</span>
+                                        </li>
+                                        <li class="feature-item">
+                                            <svg class="feature-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>Basic customer support</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="feature-item">
+                                            <svg class="feature-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>Unlimited appointments</span>
+                                        </li>
+                                        <li class="feature-item">
+                                            <svg class="feature-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>Custom domain support</span>
+                                        </li>
+                                        <li class="feature-item">
+                                            <svg class="feature-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>Priority customer support</span>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            
+                            <!-- Payment Form -->
+                            <div class="mt-8">
+                                <h3>Payment Information</h3>
+                                <p class="text-gray-500">Enter your payment details to complete your subscription.</p>
+                                
+                                <div class="mt-6">
+                                    <div id="payment-form" class="mt-4">
+                                        {% csrf_token %}
+                                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                                            <p class="text-gray-700">Payment processing will be handled securely by our payment partner.</p>
+                                            <button type="button" id="rzp-button" class="btn btn-primary mt-4">
+                                                Complete Payment - ₹{{ plan.price_monthly|floatformat:2 }}
+                                            </button>
+                                            <div id="payment-response" class="mt-4 text-red-600"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Summary -->
+                    <div class="payment-summary">
+                        <h3>Order Summary</h3>
+                        <div class="bg-white rounded p-4">
+                            <div class="flex justify-between text-base font-medium text-gray-900">
+                                <p>Subtotal</p>
+                                <p>₹{{ plan.price_monthly|floatformat:2 }}</p>
+                            </div>
+                            <div class="mt-2 flex justify-between text-sm text-gray-500">
+                                <p>Tax</p>
+                                <p>₹0.00</p>
+                            </div>
+                            <div class="border-t pt-4 mt-4 flex items-center justify-between text-base font-medium text-gray-900">
+                                <p>Total</p>
+                                <p>₹{{ plan.price_monthly|floatformat:2 }}</p>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <p class="text-sm text-gray-500">
+                                    By completing your purchase, you agree to our
+                                    <a href="#">Terms of Service</a> and
+                                    <a href="#">Privacy Policy</a>.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <div class="flex items-center">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style="color: #10b981; margin-right: 8px;">
+                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-sm text-gray-500">Secure payment processing</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Razorpay Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentButton = document.getElementById('rzp-button');
+        const paymentResponse = document.getElementById('payment-response');
+        
+        paymentButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Disable the button to prevent multiple clicks
+            paymentButton.disabled = true;
+            paymentButton.textContent = 'Processing...';
+            paymentResponse.textContent = '';
+            
+            // Get the plan type from the URL
+            const planType = '{{ plan.plan_type }}';
+            
+            // Create a payment order
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Use the correct URL for creating payment order
+            fetch('/pricing/payment/create-order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    plan: planType,
+                    amount: '{{ plan.price_monthly }}'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Convert amount to paise for Razorpay
+                const amountInPaise = data.amount; // Already in paise from the server
+                
+                // Open Razorpay payment form
+                const options = {
+                    key: '{{ razorpay_key_id }}',
+                    amount: amountInPaise, // Amount in paise for Razorpay
+                    currency: data.currency,
+                    name: '{{ plan.name }} Plan',
+                    description: 'Subscription Payment',
+                    order_id: data.order_id,
+                    handler: function(response) {
+                        // Handle successful payment
+                        verifyPayment(response, data.order_id);
+                    },
+                    prefill: {
+                        name: '{{ user.get_full_name|default:user.get_username }}',
+                        email: '{{ user.email|default:"" }}',
+                        contact: '{{ user.provider_profile.phone|default:"" }}'
+                    },
+                    theme: {
+                        color: '#4f46e5'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            // Re-enable the button if user closes the payment form
+                            paymentButton.disabled = false;
+                            paymentButton.textContent = 'Complete Payment - ₹{{ plan.price_monthly|floatformat:2 }}';
+                        }
+                    }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+                
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                paymentResponse.textContent = 'Error: ' + error.message;
+                paymentButton.disabled = false;
+                paymentButton.textContent = 'Complete Payment - ₹{{ plan.price_monthly|floatformat:2 }}';
+            });
+            
+            // Format amount for display
+            function formatAmount(amount) {
+                // Convert paise to rupees and format with 2 decimal places
+                return (amount / 100).toFixed(2);
+            }
+        });
+        
+        function verifyPayment(paymentResponse, orderId) {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+fetch('/pricing/payment/verify/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                    razorpay_order_id: paymentResponse.razorpay_order_id,
+                    razorpay_signature: paymentResponse.razorpay_signature,
+                    order_id: orderId,
+                    plan: '{{ plan.plan_type }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to success page on successful payment
+                    window.location.href = '{% url "subscriptions:upgrade_success" %}';
+                } else {
+                    throw new Error(data.error || 'Payment verification failed');
+                }
+            })
+            .catch(error => {
+                console.error('Verification error:', error);
+                paymentResponse.textContent = 'Payment verification failed: ' + error.message;
+                paymentButton.disabled = false;
+                paymentButton.textContent = 'Try Again - ₹{{ plan.price_monthly|floatformat:2 }}';
+            });
+        }
+    });
+    </script>
+</body>
+</html>

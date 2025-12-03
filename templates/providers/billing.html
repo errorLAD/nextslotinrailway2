@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load plan_tags %}
+
+{% block title %}Billing & Subscription - {{ provider.business_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2 class="mb-1"><i class="bi bi-credit-card"></i> Subscription Management</h2>
+        <p class="text-muted mb-0">Review your plan details and payment history</p>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Current Plan Card -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-star-fill"></i> Your Current Plan</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                                                {% if provider.is_pro %}
+                        <span class="badge bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-size: 1.2rem; padding: 10px 20px;">
+                            PRO
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary" style="font-size: 1.2rem; padding: 10px 20px;">
+                            FREE
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Plan Started</span>
+                            <span class="fw-bold">{{ provider.plan_start_date|date:"M d, Y" }}</span>
+                        </div>
+                        {% if provider.plan_end_date %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">{% if provider.is_pro %}Next Billing Date{% else %}Plan Ends On{% endif %}</span>
+                            <span class="fw-bold">{{ provider.plan_end_date|date:"M d, Y" }}</span>
+                        </div>
+                        {% endif %}
+                        {% if provider.is_pro %}
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Monthly Cost</span>
+                            <span class="fw-bold text-primary">₹199</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Plan Features -->
+                    <div class="mt-4">
+                        <h6 class="mb-3">Your Plan Includes:</h6>
+                        <ul class="list-unstyled">
+                            {% if provider.has_pro_features %}
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Unlimited appointments</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Unlimited services</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Professional booking page</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> WhatsApp notifications</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Priority support</li>
+                            {% else %}
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> 5 appointments per month</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Maximum 3 services</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Basic booking page</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 mt-4">
+                        {% if not provider.is_pro %}
+                        <a href="{% url 'subscriptions:pricing' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-lightning-charge-fill"></i> Unlock Pro Features - Just ₹199/month
+                        </a>
+                        {% else %}
+                        <a href="{% url 'subscriptions:downgrade_to_free' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-down-circle"></i> Downgrade to FREE
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'subscriptions:pricing' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-info-circle"></i> View All Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Usage Statistics -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Your Monthly Usage</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Appointments This Month -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Appointments This Month</h6>
+                            {% if provider.has_pro_features %}
+                            <span class="badge bg-success">Unlimited</span>
+                            {% else %}
+                            <span class="badge bg-primary">{{ provider.appointments_this_month }}/5</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if not provider.has_pro_features %}
+                        <div class="progress" style="height: 20px;">
+                            {% widthratio provider.appointments_this_month 5 100 as percentage %}
+                            <div class="progress-bar {% if percentage >= 100 %}bg-danger{% elif percentage >= 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 style="width: {{ percentage }}%">
+                                {{ percentage }}%
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ provider.remaining_appointments }} remaining</small>
+                        {% else %}
+                        <p class="text-muted mb-0">You've created {{ provider.appointments_this_month }} appointments this month</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Services Count -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Active Services</h6>
+                            {% if provider.has_pro_features %}
+                            <span class="badge bg-success">Unlimited</span>
+                            {% else %}
+                            <span class="badge bg-primary">{{ provider.services.count }}/3</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if not provider.has_pro_features %}
+                        <div class="progress" style="height: 20px;">
+                            {% widthratio provider.services.count 3 100 as service_percentage %}
+                            <div class="progress-bar {% if service_percentage >= 100 %}bg-danger{% elif service_percentage >= 66 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 style="width: {{ service_percentage }}%">
+                                {{ service_percentage }}%
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0">You have {{ provider.services.count }} active services</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Counter Reset Info -->
+                    <div class="alert {% if provider.is_pro %}alert-success{% else %}alert-info{% endif %}">
+                        <small>
+                            <i class="bi {% if provider.is_pro %}bi-star-fill{% else %}bi-info-circle{% endif %}"></i>
+                            {% if provider.is_pro %}
+                                You're on the PRO plan! Enjoy unlimited appointments and services.
+                            {% else %}
+                                You're on the FREE plan (5 appointments/month). Used {{ provider.appointments_this_month }}/5 this month. Resets on the 1st of next month.
+                            {% endif %}
+                        </small>
+                    </div>
+                    
+                    <!-- Upgrade CTA for FREE users -->
+                    {% if not provider.has_pro_features and provider.appointments_this_month >= 3 %}
+                    <div class="alert alert-warning">
+                        <h6 class="mb-2">Running low on appointments?</h6>
+                        <p class="mb-2 small">Upgrade to PRO for unlimited bookings and never worry about limits again!</p>
+                        <a href="{% url 'subscriptions:upgrade_to_pro' %}" class="btn btn-warning btn-sm">
+                            Upgrade Now
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment History -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Payment History</h5>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Plan</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Payment ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.created_at|date:"M d, Y" }}</td>
+                                    <td>{{ payment.plan.name }}</td>
+                                    <td class="fw-bold">₹{{ payment.amount }}</td>
+                                    <td>
+                                        {% if payment.status == 'success' %}
+                                        <span class="badge bg-success">Success</span>
+                                        {% elif payment.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% elif payment.status == 'failed' %}
+                                        <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small class="text-muted">{{ payment.razorpay_payment_id|default:"-" }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-receipt display-4 text-muted"></i>
+                        <p class="text-muted mt-3">No payment history yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

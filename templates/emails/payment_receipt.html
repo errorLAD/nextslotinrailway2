@@ -1,0 +1,90 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Payment Receipt - {{ site_name }}{% endblock %}
+
+{% block content %}
+<h2>Payment Receipt 🧾</h2>
+
+<p>Hi {{ provider.business_name }},</p>
+
+<p>Thank you for your payment! Here's your receipt:</p>
+
+<div class="info-box">
+    <h3>💳 Payment Details</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Receipt Number:</span>
+        <span class="info-value">#{{ payment.id }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Date:</span>
+        <span class="info-value">{{ payment.payment_date|date:"F j, Y" }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Amount Paid:</span>
+        <span class="info-value"><strong>₹{{ payment.amount }}</strong></span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Payment Method:</span>
+        <span class="info-value">{{ payment.payment_method|upper }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Transaction ID:</span>
+        <span class="info-value">{{ payment.razorpay_payment_id }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Status:</span>
+        <span class="info-value" style="color: #28a745;">✅ Successful</span>
+    </div>
+</div>
+
+<div class="info-box">
+    <h3>📦 Subscription Details</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Plan:</span>
+        <span class="info-value">PRO Plan</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Duration:</span>
+        <span class="info-value">{{ payment.duration_months }} month(s)</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Valid From:</span>
+        <span class="info-value">{{ payment.plan_start_date|date:"F j, Y" }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Valid Until:</span>
+        <span class="info-value">{{ payment.plan_end_date|date:"F j, Y" }}</span>
+    </div>
+</div>
+
+<a href="{{ site_url }}/providers/dashboard/" class="btn">Go to Dashboard</a>
+
+<p><strong>Your PRO features are now active:</strong></p>
+<ul>
+    <li>✅ Unlimited appointments</li>
+    <li>✅ Unlimited services</li>
+    <li>✅ SMS notifications</li>
+    <li>✅ Advanced analytics</li>
+    <li>✅ Priority support</li>
+</ul>
+
+<p style="font-size: 12px; color: #666; margin-top: 30px;">
+    <strong>Note:</strong> This is an electronic receipt. No signature is required.<br>
+    For any billing questions, please contact our support team.
+</p>
+
+<p>Thank you for choosing {{ site_name }}!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

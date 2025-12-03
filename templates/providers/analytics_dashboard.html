@@ -1,0 +1,584 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - {{ provider.business_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .stat-card h3 {
+        font-size: 14px;
+        color: #666;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card .value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+    }
+    
+    .stat-card .change {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .change.positive {
+        color: #28a745;
+    }
+    
+    .change.negative {
+        color: #dc3545;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .chart-container h3 {
+        margin-top: 0;
+        color: #333;
+    }
+    
+    /* Locked chart overlay for FREE plan */
+    .locked-chart {
+        position: relative;
+        filter: blur(5px);
+        pointer-events: none;
+    }
+    
+    .unlock-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .unlock-overlay h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+    
+    .unlock-overlay .btn-upgrade {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-pending { background-color: #ffc107; color: white; }
+    .status-confirmed { background-color: #28a745; color: white; }
+    .status-completed { background-color: #007bff; color: white; }
+    .status-cancelled { background-color: #dc3545; color: white; }
+    .status-no_show { background-color: #6c757d; color: white; }
+    
+    .table-responsive {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .export-btn {
+        background: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+    
+    .export-btn:hover {
+        background: #218838;
+        color: white;
+    }
+    
+    .free-plan-notice {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .free-plan-notice h3 {
+        margin-top: 0;
+        color: #2d3436;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>📊 Analytics Dashboard</h1>
+            <p class="text-muted">{{ provider.business_name }}</p>
+        </div>
+        <div class="col-md-4 text-right">
+            {% if is_pro %}
+                <span class="badge badge-success" style="font-size: 16px; padding: 10px 20px;">PRO PLAN</span>
+                <a href="{% url 'providers:export_analytics' %}" class="export-btn">
+                    📥 Export CSV
+                </a>
+            {% else %}
+                <span class="badge badge-secondary" style="font-size: 16px; padding: 10px 20px;">FREE PLAN</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if not is_pro %}
+    <!-- FREE Plan Upgrade Notice -->
+    <div class="free-plan-notice">
+        <h3>🚀 Upgrade to PRO for Advanced Analytics!</h3>
+        <p>Get detailed charts, revenue tracking, client insights, and CSV exports.</p>
+        <a href="{% url 'subscriptions:upgrade' %}" class="btn-upgrade">
+            Upgrade to PRO - ₹199/month
+        </a>
+    </div>
+    {% endif %}
+    
+    <!-- BASIC STATS (Available for both FREE and PRO) -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3>Appointments This Month</h3>
+                <p class="value">{{ total_appointments_this_month }}</p>
+                {% if is_pro and last_month_appointments %}
+                    {% if total_appointments_this_month > last_month_appointments %}
+                        <p class="change positive">
+                            ↑ {{ total_appointments_this_month|add:"-last_month_appointments" }} from last month
+                        </p>
+                    {% elif total_appointments_this_month < last_month_appointments %}
+                        <p class="change negative">
+                            ↓ {{ last_month_appointments|add:"-total_appointments_this_month" }} from last month
+                        </p>
+                    {% else %}
+                        <p class="change">Same as last month</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if is_pro %}
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3>Revenue This Month</h3>
+                <p class="value">₹{{ revenue_this_month|floatformat:0 }}</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3>Total Clients</h3>
+                <p class="value">{{ total_clients }}</p>
+                <p class="change positive">+{{ new_clients_this_month }} new this month</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Appointments by Status -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="chart-container">
+                <h3>Appointments by Status (This Month)</h3>
+                <div class="row">
+                    {% for status_data in appointments_by_status %}
+                    <div class="col-md-3">
+                        <div class="text-center p-3">
+                            <span class="status-badge status-{{ status_data.status }}">
+                                {{ status_data.status|title }}
+                            </span>
+                            <h2 class="mt-2">{{ status_data.count }}</h2>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Today's Appointments -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <h3>Today's Appointments</h3>
+                {% if today_appointments %}
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Client</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for apt in today_appointments %}
+                        <tr>
+                            <td>{{ apt.appointment_time|time:"g:i A" }}</td>
+                            <td>{{ apt.client_name }}</td>
+                            <td>{{ apt.service.service_name }}</td>
+                            <td><span class="status-badge status-{{ apt.status }}">{{ apt.get_status_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted">No appointments scheduled for today.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if is_pro %}
+    <!-- ADVANCED ANALYTICS (PRO PLAN ONLY) -->
+    
+    <!-- Appointments Trend Chart -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="chart-container">
+                <h3>Appointments Trend (Last 30 Days)</h3>
+                <canvas id="appointmentsTrendChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Revenue Analytics -->
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h3>Revenue Trend (Last 6 Months)</h3>
+                <canvas id="revenueTrendChart" height="100"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3>Average Booking Value</h3>
+                <p class="value">₹{{ avg_booking_value|floatformat:0 }}</p>
+            </div>
+            
+            <div class="stat-card">
+                <h3>No-Show Rate</h3>
+                <p class="value">{{ no_show_rate }}%</p>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Repeat Client Rate</h3>
+                <p class="value">{{ repeat_client_rate }}%</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Revenue by Service -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Revenue by Service</h3>
+                <canvas id="revenueByServiceChart" height="150"></canvas>
+            </div>
+        </div>
+        
+        <!-- Top Clients -->
+        <div class="col-md-6">
+            <div class="table-responsive">
+                <h3>Top 5 Clients</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Phone</th>
+                            <th>Bookings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in top_clients %}
+                        <tr>
+                            <td>{{ client.client_name }}</td>
+                            <td>{{ client.client_phone }}</td>
+                            <td><strong>{{ client.bookings }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Peak Times -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Busiest Days of Week</h3>
+                <canvas id="busiestDaysChart" height="150"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h3>Busiest Hours</h3>
+                <canvas id="busiestHoursChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- LOCKED CHARTS FOR FREE PLAN (Teaser) -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="chart-container" style="position: relative;">
+                <div class="unlock-overlay">
+                    <h3>🔒 Unlock Advanced Analytics</h3>
+                    <p>Upgrade to PRO to see detailed charts and insights</p>
+                    <a href="{% url 'subscriptions:upgrade' %}" class="btn-upgrade">
+                        Upgrade to PRO
+                    </a>
+                </div>
+                <div class="locked-chart">
+                    <h3>Appointments Trend</h3>
+                    <canvas id="lockedChart1" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="chart-container" style="position: relative;">
+                <div class="unlock-overlay">
+                    <h3>🔒 PRO Feature</h3>
+                    <a href="{% url 'subscriptions:upgrade' %}" class="btn-upgrade">
+                        Upgrade Now
+                    </a>
+                </div>
+                <div class="locked-chart">
+                    <h3>Revenue Analytics</h3>
+                    <canvas id="lockedChart2" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="chart-container" style="position: relative;">
+                <div class="unlock-overlay">
+                    <h3>🔒 PRO Feature</h3>
+                    <a href="{% url 'subscriptions:upgrade' %}" class="btn-upgrade">
+                        Upgrade Now
+                    </a>
+                </div>
+                <div class="locked-chart">
+                    <h3>Client Insights</h3>
+                    <canvas id="lockedChart3" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+{% if is_pro %}
+// Chart.js configuration for PRO users
+Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+// Appointments Trend Chart
+const appointmentsTrendData = {{ appointments_trend|safe }};
+new Chart(document.getElementById('appointmentsTrendChart'), {
+    type: 'line',
+    data: {
+        labels: appointmentsTrendData.map(d => new Date(d.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})),
+        datasets: [{
+            label: 'Appointments',
+            data: appointmentsTrendData.map(d => d.count),
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+
+// Revenue Trend Chart
+const revenueTrendData = {{ revenue_trend|safe }};
+new Chart(document.getElementById('revenueTrendChart'), {
+    type: 'bar',
+    data: {
+        labels: revenueTrendData.map(d => new Date(d.month).toLocaleDateString('en-US', {month: 'short', year: 'numeric'})),
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: revenueTrendData.map(d => parseFloat(d.revenue)),
+            backgroundColor: '#28a745',
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Revenue by Service Chart
+const revenueByServiceData = {{ revenue_by_service|safe }};
+new Chart(document.getElementById('revenueByServiceChart'), {
+    type: 'doughnut',
+    data: {
+        labels: revenueByServiceData.map(d => d.service__service_name),
+        datasets: [{
+            data: revenueByServiceData.map(d => parseFloat(d.revenue)),
+            backgroundColor: [
+                '#667eea', '#764ba2', '#f093fb', '#4facfe',
+                '#43e97b', '#fa709a', '#fee140', '#30cfd0'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+// Busiest Days Chart
+const busiestDaysData = {{ busiest_days|safe }};
+const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+new Chart(document.getElementById('busiestDaysChart'), {
+    type: 'bar',
+    data: {
+        labels: busiestDaysData.map(d => dayNames[d.day - 1]),
+        datasets: [{
+            label: 'Appointments',
+            data: busiestDaysData.map(d => d.count),
+            backgroundColor: '#ffc107'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+});
+
+// Busiest Hours Chart
+const busiestHoursData = {{ busiest_hours|safe }};
+new Chart(document.getElementById('busiestHoursChart'), {
+    type: 'line',
+    data: {
+        labels: busiestHoursData.map(d => `${d.hour}:00`),
+        datasets: [{
+            label: 'Appointments',
+            data: busiestHoursData.map(d => d.count),
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+});
+
+{% else %}
+// Dummy charts for FREE plan (locked/blurred)
+const dummyData = [12, 19, 15, 25, 22, 30, 28];
+const dummyLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+new Chart(document.getElementById('lockedChart1'), {
+    type: 'line',
+    data: {
+        labels: dummyLabels,
+        datasets: [{
+            data: dummyData,
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('lockedChart2'), {
+    type: 'bar',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            data: [5000, 7000, 6500, 8000, 9500, 11000],
+            backgroundColor: '#28a745'
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('lockedChart3'), {
+    type: 'doughnut',
+    data: {
+        labels: ['New', 'Returning', 'VIP'],
+        datasets: [{
+            data: [30, 50, 20],
+            backgroundColor: ['#667eea', '#764ba2', '#f093fb']
+        }]
+    },
+    options: { responsive: true }
+});
+{% endif %}
+</script>
+{% endblock %}

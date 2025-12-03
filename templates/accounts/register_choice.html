@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create your account{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-5">
+          <div class="text-center mb-5">
+            <h2 class="mb-3">Create Your Account</h2>
+            <p class="text-muted">Select your account type to get started</p>
+          </div>
+
+          <!-- Client Signup Option -->
+          <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center mb-3">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                  <i class="bi bi-person-fill text-primary fs-4"></i>
+                </div>
+                <h4 class="mb-0">I'm a Client</h4>
+              </div>
+              <p class="text-muted mb-4">Looking to book services? Create a client account to:</p>
+              <ul class="list-unstyled mb-4">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Book appointments easily</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Manage your bookings</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Get appointment reminders</li>
+              </ul>
+              <a href="{% url 'accounts:register_client' %}" class="btn btn-primary w-100 py-2">
+                Continue as Client
+              </a>
+            </div>
+          </div>
+
+          <!-- Divider with OR -->
+          <div class="position-relative my-4">
+            <hr>
+            <div class="position-absolute top-50 start-50 translate-middle bg-white px-3">
+              <span class="text-muted">OR</span>
+            </div>
+          </div>
+
+          <!-- Service Provider Signup Option -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center mb-3">
+                <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                  <i class="bi bi-briefcase-fill text-success fs-4"></i>
+                </div>
+                <h4 class="mb-0">I'm a Service Provider</h4>
+              </div>
+              <p class="text-muted mb-4">Offering services? Create a provider account to:</p>
+              <ul class="list-unstyled mb-4">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> List your services</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Manage your availability</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i> Accept online bookings</li>
+              </ul>
+              <a href="{% url 'accounts:register_provider' %}" class="btn btn-outline-success w-100 py-2">
+                Continue as Service Provider
+              </a>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <p class="mb-0">Already have an account? 
+              <a href="{% url 'accounts:login' %}" class="fw-semibold">Sign in here</a>
+            </p>
+          </div>
+            <div class="text-center">
+              <p class="mb-0">Already have an account? 
+                <a href="{% url 'accounts:login' %}">Sign in</a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Terms and Privacy Modals -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="termsModalLabel">Terms of Service</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h4>Terms of Service</h4>
+        <p>Please review our terms of service before creating an account.</p>
+          <li>Cancellation policy</li>
+          <li>Liability disclaimers</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h4>Privacy Policy</h4>
+        <p>Please replace this with your actual Privacy Policy content. This is a placeholder text.</p>
+        <p>You should include information about:</p>
+        <ul>
+          <li>What data you collect</li>
+          <li>How you use the data</li>
+          <li>Data protection measures</li>
+          <li>User rights regarding their data</li>
+          <li>Cookie policy</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Client-side form validation
+(function () {
+  'use strict'
+  
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+  
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms).forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
+      // Check if passwords match
+      const password1 = document.getElementById('id_password1');
+      const password2 = document.getElementById('id_password2');
+      
+      if (password1.value !== password2.value) {
+        password2.setCustomValidity("Passwords don't match");
+        event.preventDefault();
+        event.stopPropagation();
+      } else {
+        password2.setCustomValidity('');
+      }
+      
+      form.classList.add('was-validated')
+    }, false)
+  })
+})()
+</script>
+{% endblock %}
+
+{% endblock %}

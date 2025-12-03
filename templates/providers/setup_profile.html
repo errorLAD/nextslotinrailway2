@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Provider Setup - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Complete Your Provider Profile</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" action="{% url 'providers:setup_profile' %}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label for="business_name" class="form-label fw-bold">Business Name <span class="text-danger">*</span></label>
+                            <input type="text" name="business_name" id="business_name" 
+                                   class="form-control form-control-lg" 
+                                   value="" required>
+                            {% if form.business_name.help_text %}
+                                <div class="form-text">{{ form.business_name.help_text }}</div>
+                            {% endif %}
+                            {% if form.business_name.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.business_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="phone" class="form-label fw-bold">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" name="phone" id="phone" 
+                                   class="form-control form-control-lg" 
+                                   value="" required>
+                            {% if form.phone_number.help_text %}
+                                <div class="form-text">{{ form.phone_number.help_text }}</div>
+                            {% endif %}
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.phone_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="city" class="form-label fw-bold">City <span class="text-danger">*</span></label>
+                            <input type="text" name="city" id="city" 
+                                   class="form-control form-control-lg" 
+                                   value="" required>
+                            
+                            <label for="business_type" class="form-label fw-bold mt-3">Business Type <span class="text-danger">*</span></label>
+                            <select name="business_type" id="business_type" class="form-select form-select-lg" required>
+                                <option value="">Select business type...</option>
+                                <option value="salon">Hair Salon</option>
+                                <option value="spa">Spa</option>
+                                <option value="clinic">Clinic</option>
+                                <option value="consultant">Consultant</option>
+                                <option value="other">Other</option>
+                            </select>
+                            {% if form.address.help_text %}
+                                <div class="form-text">{{ form.address.help_text }}</div>
+                            {% endif %}
+                            {% if form.address.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.address.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="bio" class="form-label fw-bold">Bio/Description</label>
+                            <textarea name="bio" id="bio" 
+                                     class="form-control" 
+                                     rows="4"></textarea>
+                            {% if form.bio.help_text %}
+                                <div class="form-text">{{ form.bio.help_text }}</div>
+                            {% endif %}
+                            {% if form.bio.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.bio.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="profile_picture" class="form-label fw-bold">Profile Picture</label>
+                            <input type="file" name="profile_picture" id="profile_picture" 
+                                   class="form-control form-control-lg" 
+                                   accept="image/*">
+                            {% if form.profile_picture.help_text %}
+                                <div class="form-text">{{ form.profile_picture.help_text }}</div>
+                            {% endif %}
+                            {% if form.profile_picture.value %}
+                                <div class="mt-2">
+                                    <small>Current: {{ form.profile_picture.value }}</small>
+                                </div>
+                            {% endif %}
+                            {% if form.profile_picture.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.profile_picture.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-5">
+                            <a href="{% url 'providers:dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-primary btn-lg px-4">
+                                    <i class="fas fa-save me-2"></i> Save Profile
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.5rem 2rem;
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .form-control, .form-select {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .form-label {
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .btn {
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+    }
+    .btn-lg {
+        padding: 0.75rem 2rem;
+    }
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+    .invalid-feedback {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+    .is-invalid {
+        border-color: #dc3545;
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enable Bootstrap 5 form validation
+(function () {
+    'use strict'
+    
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %}

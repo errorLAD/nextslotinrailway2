@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar - {{ provider.business_name }}{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar CSS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+<style>
+    .fc {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    
+    .fc-event {
+        cursor: pointer;
+        border-radius: 4px;
+    }
+    
+    .fc-daygrid-day.fc-day-today {
+        background-color: #fff3cd !important;
+    }
+    
+    .calendar-legend {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-calendar3"></i> Calendar View</h2>
+            <p class="text-muted mb-0">Visualize your appointments</p>
+        </div>
+        <div>
+            <a href="{% url 'providers:create_appointment' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Appointment
+            </a>
+        </div>
+    </div>
+    
+    <!-- Calendar Legend -->
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #ffc107;"></div>
+            <span>Pending</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #28a745;"></div>
+            <span>Confirmed</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #6c757d;"></div>
+            <span>Completed</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #dc3545;"></div>
+            <span>Cancelled</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #fd7e14;"></div>
+            <span>No Show</span>
+        </div>
+    </div>
+    
+    <!-- Calendar Container -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Appointment Detail Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Appointment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="appointmentDetails">
+                <!-- Details loaded via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="viewAppointmentBtn" class="btn btn-primary">View Full Details</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar JS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'Today',
+            month: 'Month',
+            week: 'Week',
+            day: 'Day'
+        },
+        height: 'auto',
+        navLinks: true,
+        editable: false,
+        selectable: true,
+        selectMirror: true,
+        dayMaxEvents: true,
+        
+        // Fetch appointments from API
+        events: {
+            url: '{% url "providers:appointments_json" %}',
+            method: 'GET',
+            failure: function() {
+                alert('Error loading appointments!');
+            }
+        },
+        
+        // Click on event to view details
+        eventClick: function(info) {
+            const event = info.event;
+            const props = event.extendedProps;
+            
+            // Populate modal
+            const detailsHtml = `
+                <div class="mb-3">
+                    <strong>Client:</strong> ${props.client_name}<br>
+                    <strong>Phone:</strong> ${props.client_phone}<br>
+                    <strong>Service:</strong> ${props.service}<br>
+                    <strong>Status:</strong> <span class="badge bg-${getStatusColor(props.status)}">${props.status}</span><br>
+                    <strong>Price:</strong> ₹${props.price}
+                </div>
+            `;
+            
+            document.getElementById('appointmentDetails').innerHTML = detailsHtml;
+            document.getElementById('viewAppointmentBtn').href = 
+                '{% url "providers:appointment_detail" 0 %}'.replace('0', event.id);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            modal.show();
+        },
+        
+        // Click on date to create appointment
+        dateClick: function(info) {
+            const selectedDate = info.dateStr;
+            window.location.href = '{% url "providers:create_appointment" %}?date=' + selectedDate;
+        },
+        
+        // Customize event display
+        eventDidMount: function(info) {
+            info.el.title = info.event.title;
+        }
+    });
+    
+    calendar.render();
+    
+    // Helper function for status colors
+    function getStatusColor(status) {
+        const colors = {
+            'pending': 'warning',
+            'confirmed': 'success',
+            'completed': 'secondary',
+            'cancelled': 'danger',
+            'no_show': 'warning'
+        };
+        return colors[status] || 'primary';
+    }
+});
+</script>
+{% endblock %}

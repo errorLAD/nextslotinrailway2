@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Confirm Downgrade to Free Plan{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h3 class="mb-0">Confirm Plan Downgrade</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-arrow-down-circle text-danger" style="font-size: 3rem;"></i>
+                        <h4 class="mt-3">Are you sure you want to downgrade to the Free plan?</h4>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-exclamation-triangle-fill"></i> Important Notice</h5>
+                        <p class="mb-2">
+                            By downgrading to the Free plan, you will:
+                        </p>
+                        <ul class="mb-2">
+                            <li>Be limited to 5 appointments per month</li>
+                            <li>Be limited to 3 active services</li>
+                            <li>Lose access to custom domain features</li>
+                            <li>Lose access to advanced analytics</li>
+                            <li>See ads on your booking page</li>
+                        </ul>
+                        <p class="mb-0">
+                            <strong>Note:</strong> Your current plan will remain active until the end of your billing period.
+                        </p>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'subscriptions:pricing' %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-arrow-down-circle"></i> Confirm Downgrade
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

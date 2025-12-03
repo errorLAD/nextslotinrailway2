@@ -1,0 +1,71 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}New Appointment Booking - {{ appointment.client_name }}{% endblock %}
+
+{% block content %}
+<h2>New Appointment Booked! 🎉</h2>
+
+<p>Hi {{ provider.business_name }},</p>
+
+<p>You have a new appointment booking:</p>
+
+<div class="info-box">
+    <h3>📅 Appointment Details</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Client:</span>
+        <span class="info-value">{{ appointment.client_name }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Phone:</span>
+        <span class="info-value">{{ appointment.client_phone }}</span>
+    </div>
+    
+    {% if appointment.client_email %}
+    <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span class="info-value">{{ appointment.client_email }}</span>
+    </div>
+    {% endif %}
+    
+    <div class="info-row">
+        <span class="info-label">Service:</span>
+        <span class="info-value">{{ service.service_name }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Date:</span>
+        <span class="info-value">{{ appointment.appointment_date|date:"l, F j, Y" }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Time:</span>
+        <span class="info-value">{{ appointment.appointment_time|time:"g:i A" }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Duration:</span>
+        <span class="info-value">{{ service.duration_minutes }} minutes</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Price:</span>
+        <span class="info-value">₹{{ appointment.total_price }}</span>
+    </div>
+    
+    {% if appointment.notes %}
+    <div class="info-row">
+        <span class="info-label">Notes:</span>
+        <span class="info-value">{{ appointment.notes }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<a href="{{ site_url }}/providers/appointments/{{ appointment.id }}/" class="btn">Manage Appointment</a>
+
+<p>Please confirm or update the appointment status in your dashboard.</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}
