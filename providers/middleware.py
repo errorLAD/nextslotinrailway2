@@ -49,9 +49,13 @@ class CustomDomainMiddleware:
     This middleware checks if the request is coming from a custom domain or subdomain
     and routes users to the appropriate provider's booking page.
     
+    Each provider has unique CNAME and TXT records:
+    - CNAME target: p-{slug}-{hash}.nextslot.in
+    - TXT record name: _nextslot-verify-{hash}
+    
     CNAME Configuration:
     - Service providers set up their custom domain (e.g., booking.rameshsalon.com)
-    - They create a CNAME record pointing to: CNAME_TARGET (e.g., yourdomain.com)
+    - They create a CNAME record pointing to their unique target
     - When users visit the custom domain, they see the provider's booking page
     """
     
@@ -82,6 +86,7 @@ class CustomDomainMiddleware:
             subdomain = host.replace(f'.{default_domain}', '')
             full_subdomain = f"{subdomain}.{default_domain}"
             
+            # First, try to find by custom subdomain
             try:
                 provider = ServiceProvider.objects.get(
                     custom_domain=full_subdomain,
@@ -103,7 +108,28 @@ class CustomDomainMiddleware:
                     return redirect(f'https://{host}{request.get_full_path()}')
                     
             except ServiceProvider.DoesNotExist:
-                pass
+                # Try to find by unique CNAME target (p-{slug}-{hash}.nextslot.in)
+                try:
+                    provider = ServiceProvider.objects.get(
+                        cname_target=host,
+                        domain_verified=True,
+                        is_active=True
+                    )
+                    request.custom_domain_provider = provider
+                    request.is_custom_domain = True
+                    
+                    # Redirect to booking page if at root
+                    if request.path == '/' or request.path == '':
+                        from django.shortcuts import redirect
+                        return redirect(f'/book/{provider.unique_booking_url}/')
+                    
+                    # If SSL is enabled, ensure we're using HTTPS
+                    if provider.ssl_enabled and not request.is_secure():
+                        from django.shortcuts import redirect
+                        return redirect(f'https://{host}{request.get_full_path()}')
+                        
+                except ServiceProvider.DoesNotExist:
+                    pass
         else:
             # This is a fully custom domain (e.g., booking.rameshsalon.com or book.customdomain.com)
             try:

@@ -1,5 +1,6 @@
 """
 Views for managing custom domains for service providers.
+Each provider gets unique CNAME and TXT record configurations.
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -10,13 +11,21 @@ from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 
 from .models import ServiceProvider
-from .domain_utils import setup_custom_domain, verify_domain_dns, generate_verification_code
+from .domain_utils import (
+    setup_custom_domain, 
+    verify_domain_dns, 
+    generate_verification_code,
+    generate_unique_cname_target,
+    generate_unique_txt_record_name,
+    verify_domain_ownership
+)
 
 @login_required
 def domain_settings(request):
     """
     View for managing domain settings.
     Only available for PRO users.
+    Each provider gets unique CNAME and TXT record configurations.
     """
     # Only service providers can access this page
     if not hasattr(request.user, 'is_provider') or not request.user.is_provider:
@@ -29,10 +38,22 @@ def domain_settings(request):
     if not is_pro:
         messages.info(request, 'Custom domains are only available for PRO users. Upgrade to PRO to use this feature.')
     
+    # Get provider-specific CNAME target
+    cname_target = provider.cname_target
+    if not cname_target and provider.pk:
+        cname_target = generate_unique_cname_target(provider.pk, provider.unique_booking_url)
+    
+    # Get provider-specific TXT record name
+    txt_record_name = provider.txt_record_name
+    if not txt_record_name and provider.pk:
+        txt_record_name = generate_unique_txt_record_name(provider.pk)
+    
     context = {
         'provider': provider,
         'default_domain': settings.DEFAULT_DOMAIN,
         'is_pro': is_pro,
+        'cname_target': cname_target or settings.DEFAULT_DOMAIN,
+        'txt_record_name': txt_record_name or '_booking-verify',
     }
     
     return render(request, 'providers/domain/settings.html', context)
@@ -118,6 +139,7 @@ def is_valid_domain(domain):
 def domain_verification(request):
     """
     Show domain verification instructions and status.
+    Displays provider-specific CNAME and TXT record configurations.
     """
     if not hasattr(request.user, 'is_provider') or not request.user.is_provider:
         raise PermissionDenied("You don't have permission to access this page.")
@@ -128,10 +150,18 @@ def domain_verification(request):
         messages.warning(request, 'No custom domain configured.')
         return redirect('providers:domain_settings')
     
+    # Get provider-specific CNAME target
+    cname_target = provider.cname_target or settings.DEFAULT_DOMAIN
+    
+    # Get provider-specific TXT record name
+    txt_record_name = provider.txt_record_name or '_booking-verify'
+    
     context = {
         'provider': provider,
         'default_domain': settings.DEFAULT_DOMAIN,
         'verification_code': provider.domain_verification_code,
+        'cname_target': cname_target,
+        'txt_record_name': txt_record_name,
     }
     
     return render(request, 'providers/domain/verification.html', context)
@@ -140,6 +170,7 @@ def domain_verification(request):
 def verify_domain(request):
     """
     Verify domain ownership by checking DNS records.
+    Uses provider-specific CNAME and TXT configurations.
     """
     if not hasattr(request.user, 'is_provider') or not request.user.is_provider:
         raise PermissionDenied("You don't have permission to perform this action.")
@@ -154,6 +185,7 @@ def verify_domain(request):
         messages.error(request, 'No domain or verification code found.')
         return redirect('providers:domain_settings')
     
+    # Use the domain_utils verify_domain_ownership which uses provider-specific values
     success, message = verify_domain_ownership(provider)
     
     if success:
@@ -163,51 +195,11 @@ def verify_domain(request):
     
     return redirect('providers:domain_verification')
 
-def verify_domain_ownership(provider):
-    """
-    Verify domain ownership by checking DNS records.
-    
-    Args:
-        provider (ServiceProvider): The service provider with domain to verify
-        
-    Returns:
-        tuple: (success: bool, message: str)
-    """
-    # Check if provider has PRO features
-    if not provider.has_pro_features():
-        return False, 'Custom domains are only available on the PRO plan.'
-        
-    if not provider.custom_domain or not provider.domain_verification_code:
-        return False, 'No domain or verification code found.'
-    
-    # For subdomains, we only need to verify CNAME
-    if provider.custom_domain_type == 'subdomain':
-        result = verify_domain_dns(
-            domain=provider.custom_domain,
-            expected_cname=settings.DEFAULT_DOMAIN,
-            expected_txt=provider.domain_verification_code
-        )
-    else:
-        # For full domains, we need both CNAME and TXT verification
-        result = verify_domain_dns(
-            domain=provider.custom_domain,
-            expected_cname=settings.DEFAULT_DOMAIN,
-            expected_txt=provider.domain_verification_code
-        )
-    
-    if result['success']:
-        # Update provider with verification status
-        provider.domain_verified = True
-        provider.ssl_enabled = True  # Auto-enable SSL for verified domains
-        provider.save()
-        return True, 'Domain verified successfully! SSL will be enabled shortly.'
-    else:
-        return False, 'Domain verification failed. ' + ' '.join(result['messages'])
-
 @login_required
 def remove_domain(request):
     """
     Remove a custom domain from the provider's account.
+    Clears all domain-related fields including unique CNAME and TXT configurations.
     """
     if not hasattr(request.user, 'is_provider') or not request.user.is_provider:
         raise PermissionDenied("You don't have permission to perform this action.")
@@ -222,11 +214,13 @@ def remove_domain(request):
         # Store domain name for message
         domain = provider.custom_domain
         
-        # Clear the custom domain and verification status
+        # Clear all custom domain and verification fields
         provider.custom_domain = None
         provider.custom_domain_type = 'none'
         provider.domain_verified = False
         provider.domain_verification_code = None
+        provider.cname_target = None  # Clear unique CNAME target
+        provider.txt_record_name = ''  # Clear unique TXT record name
         provider.ssl_enabled = False
         provider.domain_added_at = None
         provider.save()

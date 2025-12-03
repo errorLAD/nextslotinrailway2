@@ -214,6 +214,23 @@ class ServiceProvider(models.Model):
         help_text='When the domain was added'
     )
     
+    # Provider-specific CNAME configuration
+    # Each provider gets a unique CNAME target for their custom domain
+    cname_target = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text='Unique CNAME target for this provider (e.g., provider-abc123.nextslot.in)'
+    )
+    
+    # Provider-specific TXT record name
+    txt_record_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default='_booking-verify',
+        help_text='TXT record name for domain verification (e.g., _nextslot-verify-abc123)'
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
